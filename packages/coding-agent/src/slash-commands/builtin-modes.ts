@@ -5,6 +5,7 @@ import {
 	getModelMatchPreferences,
 	resolveCliModel,
 } from "../config/model-resolver";
+import { PRESET_NAMES, PRESETS } from "../config/presets";
 import type { SettingPath, Settings } from "../config/settings";
 import { describeLoopLimitRuntime } from "../modes/loop-limit";
 import type { InteractiveModeContext } from "../modes/types";
@@ -13,6 +14,7 @@ import type { ComputerTool } from "../tools/computer";
 import { computerExposureMode } from "../tools/computer/exposure";
 import type { InspectImageMode } from "../utils/inspect-image-mode";
 import { commandConsumed, errorMessage, usage } from "./helpers/parse";
+import { runPresetSlashCommand } from "./helpers/preset";
 import { handleSecurityCommand } from "./helpers/security";
 import type { ParsedSlashCommand, SlashCommandSpec, TuiSlashCommandRuntime } from "./types";
 
@@ -196,6 +198,18 @@ export const BUILTIN_MODE_SLASH_COMMANDS: ReadonlyArray<SlashCommandSpec> = [
 			{ name: "disposition", description: "Set a finding disposition with rationale" },
 		],
 		handle: handleSecurityCommand,
+	},
+	{
+		name: "preset",
+		icon: "settings",
+		description: "List capability presets or apply one (pi-minimal, opm-verify)",
+		allowArgs: true,
+		acpInputHint: "[name]",
+		subcommands: PRESET_NAMES.map(name => ({ name, description: PRESETS[name].description })),
+		handle: async (command, runtime) => {
+			await runtime.output(runPresetSlashCommand(runtime.settings, command.args));
+			return commandConsumed();
+		},
 	},
 	{
 		name: "settings",
