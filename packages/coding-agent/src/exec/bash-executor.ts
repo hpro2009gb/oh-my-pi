@@ -5,6 +5,7 @@
  */
 import { ExponentialYield } from "@oh-my-pi/pi-agent-core/utils/yield";
 import { type MinimizerOptions, PtySession, Shell, type ShellRunResult } from "@oh-my-pi/pi-natives";
+import { logger } from "@oh-my-pi/pi-utils";
 import { $env } from "@oh-my-pi/pi-utils/env";
 import { isCmdShell, isExecutable, type ShellConfig } from "@oh-my-pi/pi-utils/procmgr";
 import { Settings, type ShellMinimizerSettings } from "../config/settings";
@@ -13,6 +14,7 @@ import { resolveOutputMaxColumns, resolveOutputSinkHeadBytes } from "../tools/ou
 import { getOrCreateSnapshot } from "../utils/shell-snapshot";
 import { loadDirenvEnv } from "./direnv";
 import { buildNonInteractiveEnv } from "./non-interactive-env";
+import { buildSandboxCommand } from "./sandbox";
 
 export interface BashExecutorOptions {
 	cwd?: string;
@@ -72,6 +74,9 @@ export interface BashResult {
  *  command line, so a hostile `.envrc` can't smuggle shell syntax through
  *  `unset`. `.envrc` never produces non-identifier names in practice. */
 const SAFE_ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/** Missing-bwrap warning is once per process so every bash call doesn't spam the log. */
+let warnedUnconfinedSandbox = false;
 
 export interface DirenvPreflightOptions {
 	/** Caller-supplied env overlay; these values win over direnv-provided ones. */
@@ -592,10 +597,26 @@ export async function executeBash(command: string, options?: BashExecutorOptions
 
 	let resetSession = false;
 
+	let executedCommand = finalCommand;
+	if (!usePty && !runCdInPersistentShell) {
+		const sandboxWrap = buildSandboxCommand(finalCommand, {
+			mode: settings.get("sandbox.mode"),
+			allowNetwork: settings.get("sandbox.allowNetwork"),
+			cwd: commandCwd ?? process.cwd(),
+		});
+		if (!sandboxWrap.confined && sandboxWrap.reason && settings.get("sandbox.mode") !== "off") {
+			if (!warnedUnconfinedSandbox) {
+				warnedUnconfinedSandbox = true;
+				logger.warn("Bash sandbox unavailable, running unconfined", { reason: sandboxWrap.reason });
+			}
+		}
+		executedCommand = sandboxWrap.command;
+	}
+
 	try {
 		const runPromise = executionShell.run(
 			{
-				command: finalCommand,
+				command: executedCommand,
 				cwd: commandCwd,
 				env: commandEnv,
 				timeoutMs: nativeTimeoutMs,

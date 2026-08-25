@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added the `opm-safe` capability pack (`--preset opm-safe`): verify toolkit plus Linux workspace sandbox with network off
+- Added a `--preset` flag with named capability packs (`pi-minimal`, `opm-verify`) that flip a curated bundle of tool settings at startup without persisting, leaving any setting you already configured untouched.
+- Added optional Linux bubblewrap OS sandbox for bash (`sandbox.mode`, default off; network off unless `sandbox.allowNetwork`)
 - Added an explicit append-only transcript declaration and width-independent stable-row API for components that can guarantee an immutable history prefix across later updates.
 - Added `:img` read selector to rasterize local SVG/SVGZ files for vision input.
 - Added side-by-side image and SVG previews to `omp git`, including local Git LFS object resolution and explicit placeholders for unavailable or unsupported binary content.
