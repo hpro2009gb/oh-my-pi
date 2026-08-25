@@ -5,11 +5,10 @@ import type {
 	AssistantMessage,
 	AssistantMessageEvent,
 	AssistantMessageEventStream,
-	Context,
 	Model,
 } from "@oh-my-pi/pi-ai";
 import { parseBakeoffModels, renderBakeoffReport, runBakeoffCommand } from "@oh-my-pi/pi-coding-agent/bakeoff";
-import type { BenchModelRegistry } from "@oh-my-pi/pi-coding-agent/cli/bench-runtime";
+import type { BenchModelRegistry, StreamSimpleFn } from "@oh-my-pi/pi-coding-agent/cli/bench-runtime";
 import Bakeoff from "@oh-my-pi/pi-coding-agent/commands/bakeoff";
 
 afterEach(() => {
@@ -100,23 +99,22 @@ describe("--models parsing", () => {
 describe("bakeoff completion seam", () => {
 	it("calls each requested model through the injected seam and aggregates without a real API key", async () => {
 		const prompt = "Write a haiku about Bun";
-		const seam = {
-			streamSimple: (model: Model<Api>, _context: Context) => replyStream(`from ${model.id}`),
+		const calledIds: string[] = [];
+		const seam: { streamSimple: StreamSimpleFn } = {
+			streamSimple: (model, context) => {
+				calledIds.push(`${model.provider}/${model.id}`);
+				const last = context.messages[context.messages.length - 1];
+				expect(typeof last?.content === "string" ? last.content : "").toBe(prompt);
+				return replyStream(`from ${model.id}`);
+			},
 		};
 		const spy = vi.spyOn(seam, "streamSimple");
-		const calledIds: string[] = [];
-		spy.mockImplementation((model, context) => {
-			calledIds.push(`${model.provider}/${model.id}`);
-			const last = context.messages[context.messages.length - 1];
-			expect(typeof last?.content === "string" ? last.content : "").toBe(prompt);
-			return replyStream(`from ${model.id}`);
-		});
 
 		const results = await runBakeoffCommand(
 			{ models: ["acme/alpha", "acme/beta", "acme/gamma"], prompt },
 			{
 				createRuntime: async () => ({ modelRegistry: registry, close: () => {} }),
-				streamSimple: (model, context, options) => seam.streamSimple(model, context, options),
+				streamSimple: seam.streamSimple,
 				randomSessionId: () => "sess-0",
 				writeStdout: () => {},
 				writeStderr: () => {},
