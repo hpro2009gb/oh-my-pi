@@ -39,6 +39,15 @@ Working-directory layout: newest mtime first; depth ≤ 3.
 </workspace-tree>
 {{/if}}
 {{/if}}
+{{#if repoMap.rendered}}
+<repo-map>
+Exported-symbol outline (ranked, budget-limited): reuse these instead of reinventing.
+{{repoMap.rendered}}
+{{#if repoMap.truncated}}
+Outline truncated to fit the budget — read files for full detail.
+{{/if}}
+</repo-map>
+{{/if}}
 {{#if additionalWorkspaceRoots.length}}
 <workspace-roots>
 Additional workspace directories. This CURRENT workspace state supersedes workspace changes mentioned earlier in the conversation. {{#ifAny (includes tools "read") (includes tools "grep") (includes tools "glob") (includes tools "edit")}}Use absolute paths under these roots to {{#has tools "read"}}`{{toolRefs.read}}`{{/has}}{{#has tools "grep"}}{{#ifAny (includes tools "read")}}/{{/ifAny}}`{{toolRefs.grep}}`{{/has}}{{#has tools "glob"}}{{#ifAny (includes tools "read") (includes tools "grep")}}/{{/ifAny}}`{{toolRefs.glob}}`{{/has}}{{#has tools "edit"}}{{#ifAny (includes tools "read") (includes tools "grep") (includes tools "glob")}}/{{/ifAny}}`{{toolRefs.edit}}`{{/has}}.{{/ifAny}} Manage with `/add-dir` and `/remove-dir`; `/dirs` lists them.

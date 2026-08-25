@@ -33,6 +33,7 @@ import friendlyPersonality from "./prompts/system/personalities/friendly.md" wit
 import pragmaticPersonality from "./prompts/system/personalities/pragmatic.md" with { type: "text" };
 import projectPromptTemplate from "./prompts/system/project-prompt.md" with { type: "text" };
 import systemPromptTemplate from "./prompts/system/system-prompt.md" with { type: "text" };
+import { buildRepoMap, emptyRepoMap, type RepoMap } from "./repo-map";
 import { normalizeConcurrencyLimit } from "./task/parallel";
 import { usesCodexTaskPrompt } from "./task/prompt-policy";
 import { type ActiveRepoContext, resolveActiveRepoContext } from "./utils/active-repo-context";
@@ -624,6 +625,12 @@ export interface BuildSystemPromptOptions {
 	secretsEnabled?: boolean;
 	/** Pre-loaded workspace tree (skips discovery if provided). May be a Promise to allow early kick-off. */
 	workspaceTree?: WorkspaceTree | Promise<WorkspaceTree>;
+	/** Render the repo map (exported-symbol outline) in the system prompt. Default: false. */
+	includeRepoMap?: boolean;
+	/** Approximate token ceiling for the repo map when built here. */
+	repoMapTokenBudget?: number;
+	/** Pre-built repo map (skips the native scan if provided). May be a Promise to allow early kick-off. */
+	repoMap?: RepoMap | Promise<RepoMap>;
 	/** Whether the local memory://root summary is active. */
 	memoryRootEnabled?: boolean;
 	/** Whether the read-only security:// resource namespace is active. */
@@ -693,6 +700,9 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		taskIrcEnabled = false,
 		secretsEnabled = false,
 		workspaceTree: providedWorkspaceTree,
+		includeRepoMap = false,
+		repoMapTokenBudget,
+		repoMap: providedRepoMap,
 		scoutAvailable = true,
 		memoryRootEnabled = false,
 		securityEnabled = false,
@@ -722,6 +732,7 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 			totalLines: 0,
 			agentsMdFiles: [],
 		} satisfies WorkspaceTree,
+		repoMap: emptyRepoMap(resolvedCwd),
 		activeRepoContext: null as ActiveRepoContext | null,
 		cpuModel: undefined as string | undefined,
 		gpu: undefined as string | undefined,
@@ -779,6 +790,17 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		);
 		return dedupeContainedContextFiles([...primary, ...extra.flat()]);
 	})();
+	const repoMapPromise: Promise<RepoMap> = (async () => {
+		if (providedRepoMap !== undefined) return await Promise.resolve(providedRepoMap);
+		if (!includeRepoMap) return emptyRepoMap(resolvedCwd);
+		return await logger.time("buildRepoMap", () =>
+			buildRepoMap(resolvedCwd, {
+				tokenBudget: repoMapTokenBudget,
+				timeoutMs: SYSTEM_PROMPT_PREP_TIMEOUT_MS,
+			}),
+		);
+	})();
+	repoMapPromise.catch(() => {});
 	const additionalRootsForTree = additionalWorkspaceRoots.filter(d => path.resolve(d) !== path.resolve(resolvedCwd));
 	const workspaceTreePromise = (async () => {
 		const primary =
@@ -831,6 +853,7 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		contextFiles,
 		skills,
 		workspaceTree,
+		repoMap,
 		activeRepoContext,
 		cpuModel,
 		gpu,
@@ -856,6 +879,7 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		),
 		withDeadline("loadSkills", skillsPromise, prepDefaults.skills),
 		withDeadline("buildWorkspaceTree", workspaceTreePromise, prepDefaults.workspaceTree),
+		withDeadline("buildRepoMap", repoMapPromise, prepDefaults.repoMap),
 		withDeadline("resolveActiveRepoContext", activeRepoContextPromise, prepDefaults.activeRepoContext),
 		withDeadline("getCpuModel", cpuModelPromise, prepDefaults.cpuModel),
 		withDeadline("getCachedGpu", gpuPromise, prepDefaults.gpu),
@@ -971,6 +995,7 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		contextFiles,
 		agentsMdSearch: { files: agentsMdFiles },
 		workspaceTree,
+		repoMap,
 		skills: filteredSkills,
 		rules: rules ?? [],
 		alwaysApplyRules: injectedAlwaysApplyRules,
