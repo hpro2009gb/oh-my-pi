@@ -213,7 +213,7 @@ export const TAB_GROUPS: Record<SettingTab, readonly string[]> = {
 	context: ["General", "Compaction", "Rules (TTSR)", "Experimental"],
 	memory: ["General", "Auto-Learn", "Mnemopi", "Hindsight"],
 	files: ["Editing", "Reading", "Read Summaries", "LSP"],
-	shell: ["Bash", "Eval & Runtimes"],
+	shell: ["Bash", "Sandbox", "Eval & Runtimes"],
 	tools: [
 		"Available Tools",
 		"Todos",
@@ -3857,6 +3857,47 @@ export const SETTINGS_SCHEMA = {
 			label: "direnv Load Timeout (ms)",
 			description:
 				"Max wait for the first `direnv export` (a cold devenv shell can be slow); on timeout the session runs without the direnv env",
+		},
+	},
+
+	"sandbox.mode": {
+		type: "enum",
+		values: ["off", "workspace", "container"] as const,
+		default: "off",
+		ui: {
+			tab: "shell",
+			group: "Sandbox",
+			label: "OS Sandbox",
+			description:
+				"Confine bash in a Linux bubblewrap namespace (learned from Codex). Off by default. workspace: host root is read-only, the session cwd is read-write. container: also unshares pid/ipc/uts. Missing bwrap degrades to unconfined with a warning — it never fakes enforcement. PTY and persistent-shell cd are not wrapped.",
+			options: [
+				{
+					value: "off",
+					label: "Off",
+					description: "Run bash on the host with no extra namespace",
+				},
+				{
+					value: "workspace",
+					label: "Workspace",
+					description: "Read-only host, read-write session cwd",
+				},
+				{
+					value: "container",
+					label: "Container",
+					description: "Workspace plus pid/ipc/uts namespaces",
+				},
+			],
+		},
+	},
+	"sandbox.allowNetwork": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "shell",
+			group: "Sandbox",
+			label: "Sandbox Allow Network",
+			description:
+				"When the OS sandbox is on, allow the command to use the host network. Default off (bwrap --unshare-net)",
 		},
 	},
 	// Shell output minimizer
