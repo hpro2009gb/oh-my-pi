@@ -40,7 +40,7 @@ export const launchHelp = {
 		alias: Flags.string({ description: "Create a shell shortcut for the selected profile and exit" }),
 		preset: Flags.string({
 			description:
-				"Apply a capability pack to unconfigured settings: pi-minimal, opm-verify, opm-safe (does not persist)",
+				"Apply a capability pack to unconfigured settings: pi-minimal, opm-verify, opm-safe, pi-super (does not persist)",
 		}),
 		cwd: Flags.string({ description: "Directory to start in (overrides the launch cwd)" }),
 		mode: Flags.string({
@@ -119,6 +119,7 @@ export const launchHelp = {
 		`# Create a shell shortcut for a work profile\n  ${APP_NAME} --profile work --alias omp-work`,
 		`# Bare Pi-like harness (advanced tools off)\n  ${APP_NAME} --preset pi-minimal`,
 		`# Verify toolkit inside a Linux workspace sandbox (network off)\n  ${APP_NAME} --preset opm-safe`,
+		`# Super-agent toolkit (advisor, prewalk, checkpoint, GitHub; no sandbox)\n  ${APP_NAME} --preset pi-super`,
 		`# Use different model (fuzzy matching)\n  ${APP_NAME} --model opus "Help me refactor this code"`,
 		`# Limit model cycling to specific models\n  ${APP_NAME} --models claude-sonnet,claude-haiku,gpt-4o`,
 		`# Export a session file to HTML\n  ${APP_NAME} --export ~/.omp/agent/sessions/--path--/session.jsonl`,

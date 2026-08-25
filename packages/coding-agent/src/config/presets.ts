@@ -22,7 +22,7 @@ import type { Settings } from "./settings";
 import type { SettingPath, SettingValue } from "./settings-schema";
 
 /** Stable preset identifiers accepted by `--preset` and the selector UI. */
-export const PRESET_NAMES = ["pi-minimal", "opm-verify", "opm-safe"] as const;
+export const PRESET_NAMES = ["pi-minimal", "opm-verify", "opm-safe", "pi-super"] as const;
 
 export type PresetName = (typeof PRESET_NAMES)[number];
 
@@ -98,6 +98,27 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 			{ path: "security.enabled", value: true },
 			{ path: "sandbox.mode", value: "workspace" },
 			{ path: "sandbox.allowNetwork", value: false },
+		],
+	},
+	"pi-super": {
+		name: "pi-super",
+		label: "Pi Super",
+		description:
+			"Full engineer toolkit plus advisor, prewalk, checkpoint, and GitHub — a super-agent slate without sandbox confinement.",
+		learnedFrom: "OMP Super",
+		settings: [
+			{ path: "lsp.enabled", value: true },
+			{ path: "todo.enabled", value: true },
+			{ path: "ask.enabled", value: true },
+			{ path: "web_search.enabled", value: true },
+			{ path: "astGrep.enabled", value: true },
+			{ path: "astEdit.enabled", value: true },
+			{ path: "security.enabled", value: true },
+			{ path: "advisor.enabled", value: true },
+			{ path: "prewalk.enabled", value: true },
+			{ path: "checkpoint.enabled", value: true },
+			{ path: "github.enabled", value: true },
+			{ path: "sandbox.mode", value: "off" },
 		],
 	},
 };

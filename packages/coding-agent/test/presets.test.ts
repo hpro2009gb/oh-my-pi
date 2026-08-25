@@ -69,6 +69,53 @@ describe("presets", () => {
 		expect(result?.applied).not.toContain("sandbox.mode");
 		expect(settings.get("sandbox.allowNetwork")).toBe(false);
 	});
+
+	it("pi-super enables the verify toolkit and super runtimes without sandbox confinement", () => {
+		const settings = Settings.isolated();
+		const result = applyPreset(settings, "pi-super");
+
+		expect(result?.preset.name).toBe("pi-super");
+		// Engineer toolkit on — unlike pi-minimal, which turns these off.
+		expect(settings.get("lsp.enabled")).toBe(true);
+		expect(settings.get("todo.enabled")).toBe(true);
+		expect(settings.get("ask.enabled")).toBe(true);
+		expect(settings.get("web_search.enabled")).toBe(true);
+		expect(settings.get("astGrep.enabled")).toBe(true);
+		expect(settings.get("astEdit.enabled")).toBe(true);
+		expect(settings.get("security.enabled")).toBe(true);
+		// Super runtimes on — unlike opm-verify, which leaves schema defaults (off).
+		expect(settings.get("advisor.enabled")).toBe(true);
+		expect(settings.get("prewalk.enabled")).toBe(true);
+		expect(settings.get("checkpoint.enabled")).toBe(true);
+		expect(settings.get("github.enabled")).toBe(true);
+		expect(result?.applied).toContain("advisor.enabled");
+		expect(result?.applied).toContain("prewalk.enabled");
+		expect(result?.applied).toContain("checkpoint.enabled");
+		expect(result?.applied).toContain("github.enabled");
+		// Unconfined bash — unlike opm-safe's workspace sandbox.
+		expect(settings.get("sandbox.mode")).toBe("off");
+		expect(result?.applied).toContain("sandbox.mode");
+	});
+
+	it("pi-super is not an alias of pi-minimal, opm-verify, or opm-safe", () => {
+		const superSettings = Settings.isolated();
+		applyPreset(superSettings, "pi-super");
+		const minimal = Settings.isolated();
+		applyPreset(minimal, "pi-minimal");
+		const verify = Settings.isolated();
+		applyPreset(verify, "opm-verify");
+		const safe = Settings.isolated();
+		applyPreset(safe, "opm-safe");
+
+		// A consumer asking for pi-super must not get a stripped harness.
+		expect(superSettings.get("lsp.enabled")).not.toBe(minimal.get("lsp.enabled"));
+		expect(superSettings.get("web_search.enabled")).not.toBe(minimal.get("web_search.enabled"));
+		// A consumer asking for pi-super must not get verify-only (advisor stays off).
+		expect(superSettings.get("advisor.enabled")).not.toBe(verify.get("advisor.enabled"));
+		expect(superSettings.get("github.enabled")).not.toBe(verify.get("github.enabled"));
+		// A consumer asking for pi-super must not get a confined sandbox.
+		expect(superSettings.get("sandbox.mode")).not.toBe(safe.get("sandbox.mode"));
+	});
 });
 
 describe("--preset flag parsing", () => {
@@ -76,6 +123,8 @@ describe("--preset flag parsing", () => {
 		expect(parseArgs(["--preset=pi-minimal"]).preset).toBe("pi-minimal");
 		expect(parseArgs(["--preset", "opm-verify"]).preset).toBe("opm-verify");
 		expect(parseArgs(["--preset", "opm-safe"]).preset).toBe("opm-safe");
+		expect(parseArgs(["--preset=pi-super"]).preset).toBe("pi-super");
+		expect(parseArgs(["--preset", "pi-super"]).preset).toBe("pi-super");
 	});
 
 	it("does not consume the following token as a message", () => {
