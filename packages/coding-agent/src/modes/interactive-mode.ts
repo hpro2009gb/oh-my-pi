@@ -93,6 +93,7 @@ import {
 } from "../mcp/startup-events";
 import { humanizePlanTitle, type PlanApprovalDetails, resolvePlanTitle } from "../plan-mode/approved-plan";
 import { resolvePlanModelTransition } from "../plan-mode/model-transition";
+import { PLAN_GATE_LEAVE_BLOCKED_MESSAGE } from "../plan-mode/plan-gate";
 import guidedGoalInterviewPrompt from "../prompts/goals/guided-goal-interview.md" with { type: "text" };
 import planFilenamePrompt from "../prompts/system/plan-filename.md" with { type: "text" };
 import planModeApprovedPrompt from "../prompts/system/plan-mode-approved.md" with { type: "text" };
@@ -411,7 +412,7 @@ export function shouldEnterPlanModeOnStartup(
 	return (
 		!hasConversationContext &&
 		!hasExplicitMode &&
-		sessionSettings.get("plan.defaultOnStartup") &&
+		(sessionSettings.get("plan.defaultOnStartup") || sessionSettings.get("plan.gate.enabled")) &&
 		sessionSettings.get("plan.enabled")
 	);
 }
@@ -1286,7 +1287,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		await logger.time("InteractiveMode.init:reconcileMode", () => this.#reconcileModeFromSession());
 
 		// Brand-new sessions optionally start in plan mode when the user has made it
-		// the startup default. "Brand-new" means the resolved branch carries no
+		// the startup default, or when plan.gate.enabled is on. "Brand-new" means the resolved branch carries no
 		// conversation context (buildSessionContext().messages — covers messages,
 		// custom messages, branch summaries, and compaction summaries) and the user
 		// set no explicit `mode_change` (which #reconcileModeFromSession just
@@ -1300,6 +1301,9 @@ export class InteractiveMode implements InteractiveModeContext {
 		// does not check plan.enabled itself.
 		if (shouldEnterPlanModeOnStartup(this.sessionManager, this.session.settings)) {
 			await this.#enterPlanMode();
+		} else if (!this.planModeEnabled) {
+			// Resume / explicit-mode sessions are not under the startup gate.
+			this.session.satisfyPlanGate();
 		}
 
 		// Restore unsent editor draft from previous session shutdown (Ctrl+D).
@@ -3129,8 +3133,17 @@ export class InteractiveMode implements InteractiveModeContext {
 		}
 	}
 
-	async #exitPlanMode(options?: { silent?: boolean; paused?: boolean; deferModelRestore?: boolean }): Promise<void> {
+	async #exitPlanMode(options?: {
+		silent?: boolean;
+		paused?: boolean;
+		deferModelRestore?: boolean;
+		approved?: boolean;
+	}): Promise<void> {
 		if (!this.planModeEnabled) {
+			return;
+		}
+		if (this.session.isPlanGatePending() && !options?.approved) {
+			this.showWarning(PLAN_GATE_LEAVE_BLOCKED_MESSAGE);
 			return;
 		}
 
@@ -3604,10 +3617,12 @@ export class InteractiveMode implements InteractiveModeContext {
 		}
 		let compactOutcome: CompactionOutcome | undefined;
 		try {
+			this.session.satisfyPlanGate();
 			await this.#exitPlanMode({
 				silent: true,
 				paused: false,
 				deferModelRestore: options.compactBeforeExecute === true,
+				approved: true,
 			});
 
 			if (!options.preserveContext) {
@@ -3763,6 +3778,10 @@ export class InteractiveMode implements InteractiveModeContext {
 			return false;
 		}
 		if (this.planModeEnabled) {
+			if (this.session.isPlanGatePending()) {
+				this.showWarning(PLAN_GATE_LEAVE_BLOCKED_MESSAGE);
+				return false;
+			}
 			const planFilePath = this.planModePlanFilePath ?? (await this.#getPlanFilePath());
 			if (await this.#hasPlanModeDraftContent(planFilePath)) {
 				const confirmed = await this.showHookConfirm(

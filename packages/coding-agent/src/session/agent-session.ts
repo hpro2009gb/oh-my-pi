@@ -163,6 +163,7 @@ import { computeNonMessageTokens } from "../modes/utils/context-usage";
 import { containsWorkflow, renderWorkflowNotice } from "../modes/workflow";
 import { type PlanApprovalDetails, resolveApprovedPlan } from "../plan-mode/approved-plan";
 import { listPlanFiles, readPlanFile } from "../plan-mode/plan-files";
+import { isPlanGateEnabled } from "../plan-mode/plan-gate";
 import type { PlanModeState } from "../plan-mode/state";
 import goalModeContextPrompt from "../prompts/goals/goal-mode-context.md" with { type: "text" };
 import goalTodoContextPrompt from "../prompts/goals/goal-todo-context.md" with { type: "text" };
@@ -513,6 +514,8 @@ export class AgentSession {
 	#scheduledHiddenNextTurnGeneration: number | undefined = undefined;
 	#queuedMessageDrainScheduled = false;
 	#planModeState: PlanModeState | undefined;
+	/** Once true, `plan.gate.enabled` no longer blocks leaving plan mode this session. */
+	#planGateSatisfied = false;
 	/** Session-scoped `/vision` override; undefined = follow persisted `inspect_image.mode`. */
 	#inspectImageModeOverride: InspectImageMode | undefined;
 	#vibeModeState: VibeModeState | undefined;
@@ -1048,6 +1051,7 @@ export class AgentSession {
 			hasBuiltInTool: name => this.hasBuiltInTool(name),
 			getPlanModeState: () => this.getPlanModeState(),
 			setPlanModeState: state => this.setPlanModeState(state),
+			isPlanGatePending: () => this.isPlanGatePending(),
 			getPlanReferencePath: () => this.getPlanReferencePath(),
 			setPlanProposalHandler: handler => this.setPlanProposalHandler(handler),
 			waitForSessionMessagePersistence: message => this.#waitForSessionMessagePersistence(message),
@@ -5012,6 +5016,16 @@ export class AgentSession {
 	/** Prewalk state, if armed and active */
 	getPrewalkState(): Prewalk | undefined {
 		return this.#prewalk.state;
+	}
+
+	/** True while `plan.gate.enabled` is on and the user has not yet accepted a plan. */
+	isPlanGatePending(): boolean {
+		return isPlanGateEnabled(this.settings) && !this.#planGateSatisfied;
+	}
+
+	/** Record that this session has cleared the plan-gate (user accepted, or the gate does not apply). */
+	satisfyPlanGate(): void {
+		this.#planGateSatisfied = true;
 	}
 
 	setPlanModeState(state: PlanModeState | undefined): void {

@@ -349,6 +349,12 @@ class FakeAgentSession {
 		this.planModeState = state;
 	}
 
+	isPlanGatePending(): boolean {
+		return false;
+	}
+
+	satisfyPlanGate(): void {}
+
 	planProposalHandler: ((title: string) => Promise<unknown> | unknown) | undefined;
 
 	setPlanProposalHandler(handler: ((title: string) => Promise<unknown> | unknown) | null): void {

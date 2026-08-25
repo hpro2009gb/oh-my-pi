@@ -4753,6 +4753,19 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"plan.gate.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "tasks",
+			group: "Modes",
+			label: "Plan Gate",
+			description:
+				"Start new sessions in read-only plan mode and block implementation until the user accepts the plan",
+			condition: "planModeEnabled",
+		},
+	},
+
 	"goal.enabled": {
 		type: "boolean",
 		default: true,
