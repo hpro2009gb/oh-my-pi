@@ -27,6 +27,8 @@ export interface Args {
 	/** Workspace directories beyond cwd for this session (repeatable `--add-dir`). */
 	addDir?: string[];
 	profile?: string;
+	/** Capability preset ("pack") applied to unconfigured settings at startup. */
+	preset?: string;
 	alias?: string;
 	allowHome?: boolean;
 	provider?: string;

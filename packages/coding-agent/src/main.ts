@@ -43,6 +43,7 @@ import {
 	type ScopedModel,
 } from "./config/model-resolver";
 import { ModelsConfigFile } from "./config/models-config";
+import { applyPreset, PRESET_NAMES } from "./config/presets";
 import { serviceTierSettingToTier } from "./config/service-tier";
 import { getDefault, type SettingPath, Settings, type SettingValue, settings } from "./config/settings";
 import { initializeWithSettings } from "./discovery";
@@ -1448,6 +1449,15 @@ export async function runRootCommand(
 			// --auto-approve / --yolo without an explicit --approval-mode: reflect in settings so
 			// setup-time checks (e.g. #wrapToolForAcpPermission) also see the yolo intent.
 			settingsInstance.override("tools.approvalMode", "yolo");
+		}
+		if (parsedArgs.preset) {
+			// Runtime overrides only; keys the user already configured win.
+			if (!applyPreset(settingsInstance, parsedArgs.preset)) {
+				logger.warn("Ignoring unknown --preset value", {
+					preset: parsedArgs.preset,
+					valid: PRESET_NAMES,
+				});
+			}
 		}
 		if (parsedArgs.mode === "rpc" || parsedArgs.mode === "rpc-ui") {
 			applyRpcDefaultSettingOverrides(settingsInstance);
