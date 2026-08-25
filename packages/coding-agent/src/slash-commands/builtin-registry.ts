@@ -1,5 +1,6 @@
 import type { AutocompleteItem } from "@oh-my-pi/pi-tui";
 import { COLLAB_GUEST_ALLOWED_COMMANDS } from "../collab/guest";
+import type { Settings } from "../config/settings";
 import { BUILTIN_COLLABORATION_SLASH_COMMANDS } from "./builtin-collaboration";
 import {
 	buildArgumentCompletions,
@@ -9,6 +10,7 @@ import {
 	buildSubcommandInlineHint,
 } from "./builtin-completions";
 import { BUILTIN_CONTROL_SLASH_COMMANDS } from "./builtin-control";
+import { BUILTIN_FEEDBACK_SLASH_COMMANDS } from "./builtin-feedback";
 import { BUILTIN_LIFECYCLE_SLASH_COMMANDS } from "./builtin-lifecycle";
 import { BUILTIN_MARKETPLACE_SLASH_COMMANDS, reloadTuiPluginState } from "./builtin-marketplace";
 import { BUILTIN_MODE_SLASH_COMMANDS } from "./builtin-modes";
@@ -41,6 +43,7 @@ const BUILTIN_SLASH_COMMAND_REGISTRY: ReadonlyArray<SlashCommandSpec> = [
 	...BUILTIN_LIFECYCLE_SLASH_COMMANDS,
 	...BUILTIN_MARKETPLACE_SLASH_COMMANDS,
 	...BUILTIN_CONTROL_SLASH_COMMANDS,
+	...BUILTIN_FEEDBACK_SLASH_COMMANDS,
 ];
 
 const BUILTIN_SLASH_COMMAND_LOOKUP = new Map<string, SlashCommandSpec>();
@@ -98,8 +101,30 @@ export const BUILTIN_SLASH_COMMANDS: ReadonlyArray<TuiBuiltinSlashCommand> = BUI
 	materializeTuiBuiltinSlashCommand(cmd),
 );
 
+export function isSlashCommandAvailable(
+	command: SlashCommandSpec,
+	settings: Pick<Settings, "get"> | undefined,
+): boolean {
+	return command.isAvailable ? command.isAvailable(settings) : true;
+}
+
 export function buildTuiBuiltinSlashCommands(runtime: TuiSlashCommandRuntime): ReadonlyArray<TuiBuiltinSlashCommand> {
-	return BUILTIN_SLASH_COMMAND_DEFS.map(cmd => materializeTuiBuiltinSlashCommand(cmd, runtime));
+	return BUILTIN_SLASH_COMMAND_REGISTRY.filter(command => isSlashCommandAvailable(command, runtime.ctx.settings)).map(
+		command =>
+			materializeTuiBuiltinSlashCommand(
+				{
+					name: command.name,
+					aliases: command.aliases,
+					allowArgs: command.allowArgs === true,
+					description: command.description,
+					icon: command.icon,
+					subcommands: command.subcommands,
+					inlineHint: command.inlineHint,
+					getTuiAutocompleteDescription: command.getTuiAutocompleteDescription,
+				},
+				runtime,
+			),
+	);
 }
 
 /**
@@ -125,6 +150,7 @@ export async function executeBuiltinSlashCommand(
 
 	const command = BUILTIN_SLASH_COMMAND_LOOKUP.get(parsed.name);
 	if (!command) return false;
+	if (!isSlashCommandAvailable(command, runtime.ctx.settings)) return false;
 	if (parsed.args.length > 0 && !command.allowArgs) {
 		return false;
 	}
