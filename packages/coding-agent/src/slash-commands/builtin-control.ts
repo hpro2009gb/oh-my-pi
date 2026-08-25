@@ -1,6 +1,7 @@
 import { runPauseScreen } from "../modes/components/pause-screen";
 import { shutdownHandlerTui } from "./builtin-lifecycle";
 import { commandConsumed, errorMessage, usage } from "./helpers/parse";
+import { handleTasteCommand } from "./helpers/taste";
 import type { SlashCommandSpec } from "./types";
 
 export const BUILTIN_CONTROL_SLASH_COMMANDS: ReadonlyArray<SlashCommandSpec> = [
@@ -78,5 +79,18 @@ export const BUILTIN_CONTROL_SLASH_COMMANDS: ReadonlyArray<SlashCommandSpec> = [
 		icon: "power",
 		description: "Quit the application",
 		handleTui: shutdownHandlerTui,
+	},
+	{
+		name: "taste",
+		icon: "action",
+		description: "Record accept/reject taste for a path into .omp/taste.md (off by default)",
+		allowArgs: true,
+		inlineHint: "accept|reject <path> [reason]",
+		acpInputHint: "accept|reject <path> [reason]",
+		subcommands: [
+			{ name: "accept", description: "Log that a change should be kept", usage: "<path> [reason]" },
+			{ name: "reject", description: "Log that a change should not be repeated", usage: "<path> [reason]" },
+		],
+		handle: handleTasteCommand,
 	},
 ];
