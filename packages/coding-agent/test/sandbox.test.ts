@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { applyPreset } from "@oh-my-pi/pi-coding-agent/config/presets";
 import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
 import { executeBash } from "@oh-my-pi/pi-coding-agent/exec/bash-executor";
 import { buildSandboxArgv, buildSandboxCommand } from "@oh-my-pi/pi-coding-agent/exec/sandbox";
@@ -172,5 +173,14 @@ describe("executeBash OS sandbox", () => {
 		expect(result.exitCode).toBe(0);
 		expect(result.output).toContain("sandbox-write");
 		expect(fs.readFileSync(marker, "utf8")).toContain("sandbox-write");
+	});
+
+	it.skipIf(!bwrap)("opm-safe pack blocks outbound TCP through executeBash", async () => {
+		const settings = await Settings.init();
+		expect(applyPreset(settings, "opm-safe")?.preset.name).toBe("opm-safe");
+		const probe = "bash -c 'exec 3<>/dev/tcp/1.1.1.1/53 && echo CONNECTED' 2>/dev/null || echo BLOCKED";
+		const result = await executeBash(probe, { cwd: tempDir, timeout: 8000 });
+		expect(result.output).toContain("BLOCKED");
+		expect(result.output).not.toContain("CONNECTED");
 	});
 });

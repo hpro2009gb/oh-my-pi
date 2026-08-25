@@ -38,6 +38,10 @@ export const launchHelp = {
 		"allow-home": Flags.boolean({ description: "Allow starting in ~ without auto-switching to a temp dir" }),
 		profile: Flags.string({ description: "Use an isolated profile for auth, sessions, settings, and caches" }),
 		alias: Flags.string({ description: "Create a shell shortcut for the selected profile and exit" }),
+		preset: Flags.string({
+			description:
+				"Apply a capability pack to unconfigured settings: pi-minimal, opm-verify, opm-safe (does not persist)",
+		}),
 		cwd: Flags.string({ description: "Directory to start in (overrides the launch cwd)" }),
 		mode: Flags.string({
 			description: "Output mode: text (default), json, rpc, or rpc-ui",
@@ -113,6 +117,8 @@ export const launchHelp = {
 		`# Non-interactive mode (process and exit)\n  ${APP_NAME} -p "List all .ts files in src/"`,
 		`# Continue previous session\n  ${APP_NAME} --continue "What did we discuss?"`,
 		`# Create a shell shortcut for a work profile\n  ${APP_NAME} --profile work --alias omp-work`,
+		`# Bare Pi-like harness (advanced tools off)\n  ${APP_NAME} --preset pi-minimal`,
+		`# Verify toolkit inside a Linux workspace sandbox (network off)\n  ${APP_NAME} --preset opm-safe`,
 		`# Use different model (fuzzy matching)\n  ${APP_NAME} --model opus "Help me refactor this code"`,
 		`# Limit model cycling to specific models\n  ${APP_NAME} --models claude-sonnet,claude-haiku,gpt-4o`,
 		`# Export a session file to HTML\n  ${APP_NAME} --export ~/.omp/agent/sessions/--path--/session.jsonl`,

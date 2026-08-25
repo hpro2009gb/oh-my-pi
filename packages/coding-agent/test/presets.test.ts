@@ -45,12 +45,37 @@ describe("presets", () => {
 		expect(resolvePreset("does-not-exist")).toBeUndefined();
 		expect(applyPreset(Settings.isolated(), "does-not-exist")).toBeUndefined();
 	});
+
+	it("opm-safe confines bash to the workspace with network off and keeps the verify toolkit", () => {
+		const settings = Settings.isolated();
+		const result = applyPreset(settings, "opm-safe");
+
+		expect(result?.preset.name).toBe("opm-safe");
+		expect(settings.get("sandbox.mode")).toBe("workspace");
+		expect(settings.get("sandbox.allowNetwork")).toBe(false);
+		expect(result?.applied).toContain("sandbox.mode");
+		expect(result?.applied).toContain("sandbox.allowNetwork");
+		// Engineer toolkit stays on — this is verify + sandbox, not a minimal pack.
+		expect(settings.get("lsp.enabled")).toBe(true);
+		expect(settings.get("todo.enabled")).toBe(true);
+	});
+
+	it("does not override a user-configured sandbox.mode when applying opm-safe", () => {
+		const settings = Settings.isolated({ "sandbox.mode": "off" });
+		const result = applyPreset(settings, "opm-safe");
+
+		expect(settings.get("sandbox.mode")).toBe("off");
+		expect(result?.skipped).toContain("sandbox.mode");
+		expect(result?.applied).not.toContain("sandbox.mode");
+		expect(settings.get("sandbox.allowNetwork")).toBe(false);
+	});
 });
 
 describe("--preset flag parsing", () => {
 	it("parses both --preset=value and --preset value forms", () => {
 		expect(parseArgs(["--preset=pi-minimal"]).preset).toBe("pi-minimal");
 		expect(parseArgs(["--preset", "opm-verify"]).preset).toBe("opm-verify");
+		expect(parseArgs(["--preset", "opm-safe"]).preset).toBe("opm-safe");
 	});
 
 	it("does not consume the following token as a message", () => {

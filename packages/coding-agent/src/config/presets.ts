@@ -14,16 +14,15 @@
  *     correlated to the setting path, so a typo'd key or a wrong value type is a
  *     compile error at the preset definition, not a silent no-op at runtime.
  *
- * Presets that depend on features not yet built (an OS sandbox pack, a plan
- * gate pack) are intentionally omitted until those settings exist, rather than
- * shipped as misleading duplicates of an existing preset.
+ * `opm-plan` (plan-gate pack) is still omitted until that feature exists,
+ * rather than shipped as a misleading duplicate of an existing preset.
  */
 
 import type { Settings } from "./settings";
 import type { SettingPath, SettingValue } from "./settings-schema";
 
 /** Stable preset identifiers accepted by `--preset` and the selector UI. */
-export const PRESET_NAMES = ["pi-minimal", "opm-verify"] as const;
+export const PRESET_NAMES = ["pi-minimal", "opm-verify", "opm-safe"] as const;
 
 export type PresetName = (typeof PRESET_NAMES)[number];
 
@@ -81,6 +80,24 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 			{ path: "astGrep.enabled", value: true },
 			{ path: "astEdit.enabled", value: true },
 			{ path: "security.enabled", value: true },
+		],
+	},
+	"opm-safe": {
+		name: "opm-safe",
+		label: "OMP Safe",
+		description:
+			"Verify toolkit inside a Linux workspace sandbox with network off (bubblewrap). Degrades to unconfined if bwrap is missing.",
+		learnedFrom: "Codex",
+		settings: [
+			{ path: "lsp.enabled", value: true },
+			{ path: "todo.enabled", value: true },
+			{ path: "ask.enabled", value: true },
+			{ path: "web_search.enabled", value: true },
+			{ path: "astGrep.enabled", value: true },
+			{ path: "astEdit.enabled", value: true },
+			{ path: "security.enabled", value: true },
+			{ path: "sandbox.mode", value: "workspace" },
+			{ path: "sandbox.allowNetwork", value: false },
 		],
 	},
 };
