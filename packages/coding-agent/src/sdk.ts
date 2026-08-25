@@ -871,6 +871,10 @@ export interface BuildSystemPromptOptions {
 	appendPrompt?: string;
 	inlineToolDescriptors?: boolean;
 	includeWorkspaceTree?: boolean;
+	/** Render the repo map (exported-symbol outline) in the system prompt. Default: false. */
+	includeRepoMap?: boolean;
+	/** Approximate token ceiling for the repo map when rendered. */
+	repoMapTokenBudget?: number;
 	/** Include the read-only security:// resource inventory entry. Default: false. */
 	securityEnabled?: boolean;
 }
@@ -898,6 +902,8 @@ export async function buildSystemPrompt(options: BuildSystemPromptOptions = {}):
 		appendSystemPrompt: options.appendPrompt,
 		inlineToolDescriptors: options.inlineToolDescriptors,
 		includeWorkspaceTree: options.includeWorkspaceTree,
+		includeRepoMap: options.includeRepoMap,
+		repoMapTokenBudget: options.repoMapTokenBudget,
 		securityEnabled: options.securityEnabled,
 		toolNames,
 		tools: promptTools,
@@ -3055,6 +3061,8 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 				secretsEnabled,
 				workspaceTree: workspaceTreePromise,
 				includeWorkspaceTree,
+				includeRepoMap: settings.get("repoMap.enabled") ?? false,
+				repoMapTokenBudget: settings.get("repoMap.tokenBudget"),
 				memoryRootEnabled: memoryBackend?.id === "local",
 				securityEnabled: settings.get("security.enabled"),
 				model: getActiveModelString(),

@@ -1521,6 +1521,35 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"repoMap.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "model",
+			group: "Prompt",
+			label: "Include Repo Map",
+			description:
+				"Render a compact outline of the workspace's exported symbols (declarations + signatures) in the system prompt so the model sees the codebase shape without reading files. Off by default; adds tokens to every turn.",
+		},
+	},
+
+	"repoMap.tokenBudget": {
+		type: "number",
+		default: 1024,
+		ui: {
+			tab: "model",
+			group: "Prompt",
+			label: "Repo Map Token Budget",
+			description: "Approximate token ceiling for the repo map outline",
+			options: [
+				{ value: "512", label: "512 tokens" },
+				{ value: "1024", label: "1024 tokens" },
+				{ value: "2048", label: "2048 tokens" },
+				{ value: "4096", label: "4096 tokens" },
+			],
+		},
+	},
+
 	"workspace.additionalDirectories": {
 		type: "array",
 		default: [] as string[],
