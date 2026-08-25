@@ -161,4 +161,14 @@ describe("settings layout", () => {
 			group: "Available Tools",
 		});
 	});
+
+	it("exposes oracle.enabled as a boolean under Available Tools", () => {
+		const def = getSettingsForTab("tools").find(entry => entry.path === "oracle.enabled");
+
+		expect(def).toMatchObject({
+			type: "boolean",
+			label: "Oracle",
+			group: "Available Tools",
+		});
+	});
 });

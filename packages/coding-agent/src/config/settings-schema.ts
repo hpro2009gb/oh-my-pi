@@ -4212,6 +4212,17 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"oracle.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "tools",
+			group: "Available Tools",
+			label: "Oracle",
+			description: "Enable the oracle tool for isolated one-shot high-reasoning consults",
+		},
+	},
+
 	"launch.enabled": {
 		type: "boolean",
 		default: true,

@@ -35,17 +35,18 @@ export const EVAL_COMPLETION_BRIDGE_NAME = "__completion__";
 /** Synthetic tool the model is forced to call when a `schema` is supplied. */
 const STRUCTURED_TOOL_NAME = "respond";
 
-type CompletionTier = "smol" | "default" | "slow";
+type CompletionTier = "smol" | "default" | "slow" | "plan";
 
 const TIER_TO_PATTERN: Record<CompletionTier, string> = {
 	smol: "@smol",
 	default: "@default",
 	slow: "@slow",
+	plan: "@plan",
 };
 
 const completionArgsSchema = type({
 	prompt: "string>0",
-	"model?": "'smol'|'default'|'slow'",
+	"model?": "'smol'|'default'|'slow'|'plan'",
 	"system?": "string",
 	"schema?": { "[string]": "unknown" },
 });
