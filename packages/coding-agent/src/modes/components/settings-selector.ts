@@ -27,6 +27,17 @@ import {
 } from "@oh-my-pi/pi-tui";
 import type { ShapeTarget } from "@oh-my-pi/snapcompact";
 import {
+	applyPresetCard,
+	formatPresetCardDescription,
+	listPresetCardItems,
+	listPresetCards,
+	PRESET_CARD_GROUP,
+	PRESET_CARD_TAB,
+	type PresetCard,
+	parsePresetCardId,
+	presetCardId,
+} from "../../config/presets";
+import {
 	getDefault,
 	getType,
 	normalizeProviderMaxInFlightRequests,
@@ -41,7 +52,7 @@ import type {
 	StatusLineSegmentId,
 	StatusLineSeparatorStyle,
 } from "../../config/settings-schema";
-import { SETTING_TABS, TAB_METADATA } from "../../config/settings-schema";
+import { SETTING_TABS, TAB_GROUPS, TAB_METADATA } from "../../config/settings-schema";
 import { getCurrentThemeName, getSelectListTheme, getSettingsListTheme, theme } from "../../modes/theme/theme";
 import { AUTO_THINKING, type ConfiguredThinkingLevel } from "../../thinking";
 import { getTabBarTheme } from "../shared";
@@ -517,8 +528,8 @@ function settingsSidebarWidth(): number {
 	if (cachedSidebarWidth === undefined) {
 		let nameWidth = 0;
 		for (const tab of SETTING_TABS) {
-			for (const def of getSettingsForTab(tab)) {
-				if (def.group) nameWidth = Math.max(nameWidth, visibleWidth(def.group));
+			for (const group of TAB_GROUPS[tab]) {
+				nameWidth = Math.max(nameWidth, visibleWidth(group));
 			}
 		}
 		cachedSidebarWidth = Math.min(22, nameWidth) + 4;
@@ -860,6 +871,9 @@ export class SettingsSelectorComponent implements Component {
 		let total = 0;
 		for (const tab of SETTING_TABS) {
 			const candidates: SettingItem[] = [];
+			if (tab === PRESET_CARD_TAB) {
+				candidates.push(...this.#presetCardItems());
+			}
 			for (const def of getSettingsForTab(tab)) {
 				const item = this.#defToItem(def);
 				if (item) candidates.push(item);
@@ -909,15 +923,20 @@ export class SettingsSelectorComponent implements Component {
 	#endSearch(jumpToSelection: boolean): void {
 		if (!this.#searchList) return;
 		const selected = jumpToSelection ? this.#searchList.getSelectedItem() : undefined;
-		const selectedDef = selected ? getSettingDef(selected.id as SettingPath) : undefined;
-		const targetTab: SettingTab | "plugins" = selectedDef?.tab ?? this.#preSearchTabId;
+		const presetName = selected ? parsePresetCardId(selected.id) : undefined;
+		const selectedDef = selected && !presetName ? getSettingDef(selected.id as SettingPath) : undefined;
+		const targetTab: SettingTab | "plugins" = presetName
+			? PRESET_CARD_TAB
+			: (selectedDef?.tab ?? this.#preSearchTabId);
 
 		this.#searchQuery = "";
 		this.#searchFirstMatch.clear();
 		this.#searchMatchCount = 0;
 		this.#tabBar.setTabs(getSettingsTabs(), targetTab);
 		this.#switchToTab(targetTab);
-		if (selectedDef) {
+		if (presetName && selected) {
+			this.#currentList?.selectItem(selected.id);
+		} else if (selectedDef) {
 			this.#currentList?.selectItem(selectedDef.path);
 		}
 	}
@@ -948,6 +967,10 @@ export class SettingsSelectorComponent implements Component {
 
 	#syncTabBarToSelection(item: SettingItem | undefined): void {
 		if (!this.#searchList || !item) return;
+		if (parsePresetCardId(item.id)) {
+			this.#tabBar.setActiveById(PRESET_CARD_TAB);
+			return;
+		}
 		const def = getSettingDef(item.id as SettingPath);
 		if (def) this.#tabBar.setActiveById(def.tab);
 	}
@@ -1308,7 +1331,7 @@ export class SettingsSelectorComponent implements Component {
 	#showSettingsTab(tabId: SettingTab): void {
 		const defs = getSettingsForTab(tabId);
 
-		const items = this.#buildItemsForDefs(defs);
+		const items = this.#buildItemsForDefs(defs, tabId);
 		// Mirror SettingsList's section detection (leading ungrouped items form
 		// an implicit section) so the footer hint only advertises PgUp/PgDn
 		// when the jump actually changes sections.
@@ -1355,9 +1378,19 @@ export class SettingsSelectorComponent implements Component {
 	 * Map a definition list to UI items, dropping any whose condition is false.
 	 * Inserts a heading row whenever the (group-sorted) definition list crosses
 	 * into a new group; groups whose items are all condition-hidden emit none.
+	 * Capability-pack cards are prepended on the tools tab (not schema settings).
 	 */
-	#buildItemsForDefs(defs: SettingDef[]): SettingItem[] {
+	#buildItemsForDefs(defs: SettingDef[], tabId?: SettingTab): SettingItem[] {
 		const items: SettingItem[] = [];
+		if ((tabId ?? defs[0]?.tab) === PRESET_CARD_TAB) {
+			items.push({
+				id: `__heading:${PRESET_CARD_GROUP}`,
+				label: PRESET_CARD_GROUP,
+				currentValue: "",
+				heading: true,
+			});
+			items.push(...this.#presetCardItems());
+		}
 		let lastGroup: string | undefined;
 		for (const def of defs) {
 			const item = this.#defToItem(def);
@@ -1371,10 +1404,39 @@ export class SettingsSelectorComponent implements Component {
 		return items;
 	}
 
+	#presetCardItems(): SettingItem[] {
+		const cards = new Map(listPresetCards().map(card => [card.name, card]));
+		return listPresetCardItems().map(item => {
+			const name = parsePresetCardId(item.id);
+			const card = name ? cards.get(name) : undefined;
+			return {
+				id: item.id,
+				label: item.label,
+				description: item.description,
+				currentValue: item.currentValue,
+				submenu: card ? (_currentValue, done) => this.#createPresetCardSubmenu(card, done) : undefined,
+			};
+		});
+	}
+
+	#createPresetCardSubmenu(card: PresetCard, done: (value?: string) => void): Container {
+		return new SelectSubmenu(
+			card.label,
+			formatPresetCardDescription(card),
+			[{ value: "apply", label: "Apply pack" }],
+			"apply",
+			() => {
+				applyPresetCard(settings, presetCardId(card.name));
+				done();
+			},
+			() => done(),
+		);
+	}
+
 	/** Re-evaluate condition gates against the current settings and refresh the active list. */
 	#refreshCurrentTabItems(defs: SettingDef[]): void {
 		if (this.#currentTabId === "plugins" || !this.#currentList) return;
-		this.#currentList.setItems(this.#buildItemsForDefs(defs));
+		this.#currentList.setItems(this.#buildItemsForDefs(defs, this.#currentTabId));
 	}
 
 	/**

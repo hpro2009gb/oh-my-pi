@@ -20,7 +20,7 @@
  */
 
 import type { Settings } from "./settings";
-import type { SettingPath, SettingValue } from "./settings-schema";
+import type { SettingPath, SettingTab, SettingValue } from "./settings-schema";
 
 /** Stable preset identifiers accepted by `--preset` and the selector UI. */
 export const PRESET_NAMES = ["pi-minimal", "opm-verify"] as const;
@@ -84,6 +84,88 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		],
 	},
 };
+
+/** Maturity shown on Settings cards. Data, not renderer copy. */
+export type PresetMaturity = "stable" | "experimental";
+
+export const PRESET_MATURITY: Record<PresetName, PresetMaturity> = {
+	"pi-minimal": "stable",
+	"opm-verify": "experimental",
+};
+
+/** Settings tab/group that hosts the pack intro cards. */
+export const PRESET_CARD_TAB: SettingTab = "tools";
+export const PRESET_CARD_GROUP = "Presets";
+export const PRESET_CARD_ID_PREFIX = "preset:";
+
+/**
+ * Same next-session contract as `/preset`: the tool slate is built at session
+ * start, so pack tool-gating takes effect when the session next starts.
+ */
+export const PRESET_SESSION_REFRESH_MESSAGE = "Tool changes take effect when the session next starts.";
+
+export interface PresetCard {
+	readonly name: PresetName;
+	readonly label: string;
+	readonly description: string;
+	readonly learnedFrom: string;
+	readonly maturity: PresetMaturity;
+}
+
+export interface PresetCardItem {
+	readonly id: string;
+	readonly label: string;
+	readonly description: string;
+	readonly currentValue: PresetMaturity;
+}
+
+/** One intro card per pack, in {@link PRESET_NAMES} order. */
+export function listPresetCards(): readonly PresetCard[] {
+	return PRESET_NAMES.map(name => {
+		const preset = PRESETS[name];
+		return {
+			name,
+			label: preset.label,
+			description: preset.description,
+			learnedFrom: preset.learnedFrom,
+			maturity: PRESET_MATURITY[name],
+		};
+	});
+}
+
+export function formatPresetCardDescription(card: PresetCard): string {
+	return `${card.description} Learned from ${card.learnedFrom}. ${PRESET_SESSION_REFRESH_MESSAGE}`;
+}
+
+export function presetCardId(name: PresetName): string {
+	return `${PRESET_CARD_ID_PREFIX}${name}`;
+}
+
+export function parsePresetCardId(id: string): PresetName | undefined {
+	if (!id.startsWith(PRESET_CARD_ID_PREFIX)) return undefined;
+	const name = id.slice(PRESET_CARD_ID_PREFIX.length);
+	return isPresetName(name) ? name : undefined;
+}
+
+/** Settings-list rows for the Presets group: label, description+source, maturity badge. */
+export function listPresetCardItems(): readonly PresetCardItem[] {
+	return listPresetCards().map(card => ({
+		id: presetCardId(card.name),
+		label: card.label,
+		description: formatPresetCardDescription(card),
+		currentValue: card.maturity,
+	}));
+}
+
+/**
+ * Apply a pack from a Settings card id (`preset:<name>`) or a bare preset
+ * name. Same skip-configured-keys contract as {@link applyPreset}.
+ */
+export function applyPresetCard(settings: Settings, id: string): ApplyPresetResult | undefined {
+	const name = parsePresetCardId(id) ?? (isPresetName(id) ? id : undefined);
+	if (!name) return undefined;
+	return applyPreset(settings, name);
+}
 
 /** Type guard: whether `name` is a known preset identifier. */
 export function isPresetName(name: string): name is PresetName {
