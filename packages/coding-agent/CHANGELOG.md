@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added Presets intro cards in Settings (Tools) that show each capability pack's source and maturity, and apply the pack to unconfigured keys (tool changes take effect when the session next starts).
 - Added a `--preset` flag with named capability packs (`pi-minimal`, `opm-verify`) that flip a curated bundle of tool settings at startup without persisting, leaving any setting you already configured untouched.
 - Added an explicit append-only transcript declaration and width-independent stable-row API for components that can guarantee an immutable history prefix across later updates.
 - Added `:img` read selector to rasterize local SVG/SVGZ files for vision input.
