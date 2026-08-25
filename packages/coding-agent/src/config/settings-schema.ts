@@ -4344,6 +4344,18 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"taste.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "tools",
+			group: "Available Tools",
+			label: "Taste log",
+			description:
+				"Enable /taste accept|reject to append reviewable notes to .omp/taste.md. Notes are never auto-injected into the system prompt.",
+		},
+	},
+
 	// Fetching and browser
 	"fetch.enabled": {
 		type: "boolean",

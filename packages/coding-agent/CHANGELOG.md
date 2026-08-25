@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added opt-in `/taste accept|reject` that appends reviewable notes to `.omp/taste.md` without injecting them into the prompt (`taste.enabled`, default off).
 - Added an explicit append-only transcript declaration and width-independent stable-row API for components that can guarantee an immutable history prefix across later updates.
 - Added `:img` read selector to rasterize local SVG/SVGZ files for vision input.
 - Added side-by-side image and SVG previews to `omp git`, including local Git LFS object resolution and explicit placeholders for unavailable or unsupported binary content.
