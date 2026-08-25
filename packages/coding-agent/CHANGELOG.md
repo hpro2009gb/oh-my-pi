@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added opt-in plan-gate (`plan.gate.enabled` / `--plan-gate`): new sessions start in read-only plan mode and stay there until the user accepts the plan.
 - Added an explicit append-only transcript declaration and width-independent stable-row API for components that can guarantee an immutable history prefix across later updates.
 - Added `:img` read selector to rasterize local SVG/SVGZ files for vision input.
 - Added side-by-side image and SVG previews to `omp git`, including local Git LFS object resolution and explicit placeholders for unavailable or unsupported binary content.

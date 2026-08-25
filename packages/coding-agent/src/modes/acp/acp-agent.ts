@@ -61,6 +61,7 @@ import type { MCPServerConfig } from "../../mcp/types";
 import { loadAllExtensions } from "../../modes/components/extensions/state-manager";
 import { theme } from "../../modes/theme/theme";
 import { normalizePlanTitle, type PlanApprovalDetails, resolveApprovedPlan } from "../../plan-mode/approved-plan";
+import { isPlanGateEnabled, PLAN_GATE_LEAVE_BLOCKED_MESSAGE } from "../../plan-mode/plan-gate";
 import type { AgentSession, AgentSessionEvent } from "../../session/agent-session";
 import { BlobStore, resolveImageDataSync } from "../../session/blob-store";
 import { isSilentAbort, SKILL_PROMPT_MESSAGE_TYPE, USER_INTERRUPT_LABEL } from "../../session/messages";
@@ -1223,7 +1224,11 @@ export class AcpAgent implements Agent {
 			await this.#disposeStandaloneSession(session);
 			throw error;
 		}
-		return await this.#registerPreparedSession(session, mcpServers, setToolUIContext);
+		const record = await this.#registerPreparedSession(session, mcpServers, setToolUIContext);
+		if (isPlanGateEnabled(session.settings)) {
+			this.#applyModeChange(session, ACP_PLAN_MODE_ID);
+		}
+		return record;
 	}
 
 	async #loadManagedSession(sessionId: string, cwd: string, mcpServers: McpServer[]): Promise<ManagedSessionRecord> {
@@ -1846,6 +1851,9 @@ export class AcpAgent implements Agent {
 			// path (issue #1869).
 			session.setPlanProposalHandler?.(title => this.#handleAcpPlanProposal(session, title));
 		} else {
+			if (session.isPlanGatePending()) {
+				throw new Error(PLAN_GATE_LEAVE_BLOCKED_MESSAGE);
+			}
 			session.setPlanProposalHandler?.(null);
 			session.setPlanModeState(undefined);
 		}
@@ -1907,6 +1915,7 @@ export class AcpAgent implements Agent {
 		// content as context (the file keeps its agent-chosen name — no rename),
 		// then exit plan mode so the agent regains full tools.
 		session.setPlanReferencePath(planFilePath);
+		session.satisfyPlanGate();
 		session.setPlanProposalHandler?.(null);
 		session.setPlanModeState(undefined);
 		try {

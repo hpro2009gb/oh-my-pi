@@ -138,14 +138,14 @@ export async function runPrintMode(session: AgentSession, options: PrintModeOpti
 	// supported headless plan flow is `--plan-yolo` (auto-approve → implement),
 	// which is wired independently through the prewalk coordinator.
 	const planStartupIgnored =
-		session.settings.get("plan.defaultOnStartup") &&
+		(session.settings.get("plan.defaultOnStartup") || session.settings.get("plan.gate.enabled")) &&
 		session.settings.get("plan.enabled") &&
 		session.sessionManager.buildSessionContext().messages.length === 0 &&
 		!session.sessionManager.getEntries().some(entry => entry.type === "mode_change") &&
 		!planYolo;
 	if (planStartupIgnored) {
 		process.stderr.write(
-			"Note: plan.defaultOnStartup is ignored in print mode (no interactive surface to review the plan). Use --plan-yolo for a headless plan flow.\n",
+			"Note: plan.defaultOnStartup and plan.gate.enabled are ignored in print mode (no interactive surface to review the plan). Use --plan-yolo for a headless plan flow.\n",
 		);
 	}
 

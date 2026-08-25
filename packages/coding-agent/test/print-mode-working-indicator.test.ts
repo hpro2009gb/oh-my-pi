@@ -189,7 +189,9 @@ describe("print mode working indicator", () => {
 			expect(delayed.getPlanModeAtPrompt()).toBeUndefined();
 			expect(delayed.getModeChanges()).toEqual([]);
 			expect(delayed.getPlanProposalHandler()).toBeUndefined();
-			expect(stderrOutput.join("")).toContain("plan.defaultOnStartup is ignored in print mode");
+			expect(stderrOutput.join("")).toContain(
+				"plan.defaultOnStartup and plan.gate.enabled are ignored in print mode",
+			);
 		} finally {
 			delayed.resolvePrompt();
 			await run;

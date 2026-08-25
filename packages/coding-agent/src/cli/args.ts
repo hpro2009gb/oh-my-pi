@@ -40,6 +40,7 @@ export interface Args {
 	prewalkInto?: string;
 	planYolo?: boolean;
 	planYoloInto?: string;
+	planGate?: boolean;
 	maxTime?: number;
 	apiKey?: string;
 	systemPrompt?: string;
@@ -264,6 +265,8 @@ export function parseArgs(inputArgs: string[], extensionFlags?: Map<string, { ty
 			result.noPrewalk = true;
 		} else if (arg === "--plan-yolo") {
 			result.planYolo = true;
+		} else if (arg === "--plan-gate") {
+			result.planGate = true;
 		} else if (arg === "--print" || arg === "-p") {
 			result.print = true;
 		} else if (arg === "--print-thoughts") {

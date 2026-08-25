@@ -1503,6 +1503,10 @@ export async function runRootCommand(
 		if (parsedArgs.advisor) {
 			settingsInstance.override("advisor.enabled", true);
 		}
+		// Apply --plan-gate CLI flag (ephemeral, not persisted)
+		if (parsedArgs.planGate) {
+			settingsInstance.override("plan.gate.enabled", true);
+		}
 		// Apply --external-thinking CLI flag (ephemeral, not persisted)
 		if (parsedArgs.externalThinking) {
 			settingsInstance.override("externalThinking", true);

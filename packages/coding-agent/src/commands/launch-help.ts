@@ -31,6 +31,10 @@ export const launchHelp = {
 				"Force read-only plan mode at start, auto-approve the plan on the model's first resolve call, then switch to --plan-yolo-into to implement it",
 		}),
 		"plan-yolo-into": Flags.string({ description: 'Target model for plan-yolo execution (default the "smol" role)' }),
+		"plan-gate": Flags.boolean({
+			description:
+				"Start this session in read-only plan mode and block implementation until the user accepts the plan",
+		}),
 		provider: Flags.string({ description: "Provider to use (legacy; prefer --model)" }),
 		"api-key": Flags.string({ description: "API key (defaults to env vars)" }),
 		"system-prompt": Flags.string({ description: "System prompt (default: coding assistant prompt)" }),

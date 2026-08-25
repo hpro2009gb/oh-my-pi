@@ -75,6 +75,7 @@ export interface PrewalkCoordinatorHost {
 	hasBuiltInTool(name: string): boolean;
 	getPlanModeState(): PlanModeState | undefined;
 	setPlanModeState(state: PlanModeState | undefined): void;
+	isPlanGatePending(): boolean;
 	getPlanReferencePath(): string;
 	setPlanProposalHandler(handler: PlanProposalHandler | null): void;
 	waitForSessionMessagePersistence(message: AgentMessage): Promise<void>;
@@ -265,6 +266,10 @@ export class PrewalkCoordinator {
 			planFilePath: this.#host.getPlanReferencePath() || "local://PLAN.md",
 			workflow: "parallel",
 		});
+		if (this.#host.isPlanGatePending()) {
+			// Gate requires the existing plan-approval path; yolo must not auto-bypass.
+			return;
+		}
 		this.#host.setPlanProposalHandler(title => this.#finalizePlanYoloProposal(title));
 	}
 
@@ -285,6 +290,9 @@ export class PrewalkCoordinator {
 		const planYolo = this.#planYolo;
 		const state = this.#host.getPlanModeState();
 		if (!planYolo || !state?.enabled) throw new ToolError("Plan mode is not active.");
+		if (this.#host.isPlanGatePending()) {
+			throw new ToolError("Plan gate is on: accept the plan before leaving plan mode.");
+		}
 		const { planFilePath, title: resolvedTitle } = await resolveApprovedPlan({
 			suppliedTitle: title,
 			statePlanFilePath: state.planFilePath,
