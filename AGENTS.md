@@ -315,3 +315,13 @@ Location: `packages/*/CHANGELOG.md` (per package).
 2. Run `bun run release`.
 
 The script handles version bump, CHANGELOG finalization, commit, tag, publish, and adding new `[Unreleased]` sections.
+
+## Cursor Cloud specific instructions
+
+Cloud Agent VMs are Linux. Desktop `omp /login` (the machine-local `~/.omp` directory) does not copy into the pod. Cursor login is not OMP provider auth.
+
+- Bootstrap: `bun run setup` (`bun install`, native addon build, then `scripts/link-omp.sh` so `omp` is on PATH).
+- Run the CLI from source without linking: `bun packages/coding-agent/src/cli.ts` or `bun run dev`.
+- Live `omp -p` / model calls need a Cloud environment secret (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, or `GEMINI_API_KEY`). Without one, `omp models` reports no models; pack tests still run.
+- Linux bash sandboxing needs `bwrap` (package `bubblewrap`) on PATH. Missing `bwrap` degrades to unconfined execution; it never pretends the command was sandboxed.
+- Prefer focused package tests (`bun test packages/coding-agent/test/<file>.test.ts`). Do not run the full `bun test` suite unless the change needs it.
