@@ -1,11 +1,11 @@
 import type { AvailableCommand } from "@oh-my-pi/pi-utils/acp";
-import type { SkillsSettings } from "../config/settings";
+import type { Settings, SkillsSettings } from "../config/settings";
 import type { LoadedCustomCommand } from "../extensibility/custom-commands";
 import type { ExtensionRunner } from "../extensibility/extensions";
 import { getSkillSlashCommandName, type Skill } from "../extensibility/skills";
 import { type FileSlashCommand, loadSlashCommands } from "../extensibility/slash-commands";
 import { ACP_BUILTIN_RESERVED_NAMES, isAcpBuiltinShadowedName } from "./acp-builtins";
-import { BUILTIN_SLASH_COMMANDS_INTERNAL } from "./builtin-registry";
+import { BUILTIN_SLASH_COMMANDS_INTERNAL, isSlashCommandAvailable } from "./builtin-registry";
 
 export type AvailableSlashCommandSource = "builtin" | "skill" | "extension" | "custom" | "mcp_prompt" | "file";
 
@@ -24,6 +24,8 @@ export interface AvailableCommandsSession {
 	readonly mcpPromptCommands?: ReadonlyArray<LoadedCustomCommand>;
 	readonly skills: ReadonlyArray<Skill>;
 	readonly skillsSettings?: SkillsSettings;
+	/** Used to hide default-off builtins such as `/feedback`. */
+	readonly settings?: Pick<Settings, "get">;
 	setSlashCommands(slashCommands: FileSlashCommand[]): void;
 	sessionManager: { getCwd(): string };
 }
@@ -42,6 +44,7 @@ export async function buildAvailableSlashCommands(
 
 	for (const command of BUILTIN_SLASH_COMMANDS_INTERNAL) {
 		if (!command.handle) continue;
+		if (!isSlashCommandAvailable(command, session.settings)) continue;
 		const hint = command.acpInputHint ?? command.inlineHint;
 		appendCommand({
 			name: command.name,

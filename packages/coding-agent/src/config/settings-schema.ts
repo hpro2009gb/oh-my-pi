@@ -209,6 +209,7 @@ export const TAB_GROUPS: Record<SettingTab, readonly string[]> = {
 		"Power (macOS)",
 		"Agent",
 		"Git",
+		"Feedback",
 	],
 	context: ["General", "Compaction", "Rules (TTSR)", "Experimental"],
 	memory: ["General", "Auto-Learn", "Mnemopi", "Hindsight"],
@@ -2979,6 +2980,20 @@ export const SETTINGS_SCHEMA = {
 	},
 	// Config-file-only knob (numbers without `options` are hidden from the UI).
 	"autolearn.minToolCalls": { type: "number", default: 5 },
+
+	// Local session feedback log. Independent of autolearn/memory: default off,
+	// operator-initiated notes only, never uploaded.
+	"feedback.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "interaction",
+			group: "Feedback",
+			label: "Local feedback log",
+			description:
+				"Enable /feedback to append short notes about the current session to a local JSONL file. Notes stay on this machine.",
+		},
+	},
 
 	// Mnemopi local SQLite memory backend.
 	"mnemopi.dbPath": {

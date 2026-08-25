@@ -45,6 +45,10 @@ export const dryBalanceHelp = {
 	description: "Dry-run OAuth account balancing across random session ids",
 } satisfies CommandMetadata;
 
+export const feedbackHelp = {
+	description: "List locally recorded /feedback notes (never uploaded)",
+} satisfies CommandMetadata;
+
 export const galleryHelp = {
 	description: "Preview tool renderers across streaming, in-progress, success, and failure states",
 } satisfies CommandMetadata;

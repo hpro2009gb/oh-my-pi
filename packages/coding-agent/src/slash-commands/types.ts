@@ -133,6 +133,11 @@ export interface SlashCommandSpec extends BuiltinSlashCommand {
 	 */
 	acpInputHint?: string;
 	/**
+	 * When set, autocomplete/help omit the command and dispatch treats it as
+	 * unknown unless this returns true. Used for default-off opt-in commands.
+	 */
+	isAvailable?: (settings: Pick<Settings, "get"> | undefined) => boolean;
+	/**
 	 * Text/ACP-mode handler. The same body is invoked from the ACP dispatcher
 	 * and, via the TUI adapter, when no `handleTui` override is provided.
 	 *

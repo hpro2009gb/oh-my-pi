@@ -1,5 +1,9 @@
 import type { AvailableCommand } from "@oh-my-pi/pi-utils/acp";
-import { BUILTIN_SLASH_COMMANDS_INTERNAL, lookupBuiltinSlashCommand } from "./builtin-registry";
+import {
+	BUILTIN_SLASH_COMMANDS_INTERNAL,
+	isSlashCommandAvailable,
+	lookupBuiltinSlashCommand,
+} from "./builtin-registry";
 import { parseSlashCommand } from "./helpers/parse";
 import type { AcpBuiltinSlashCommandResult, SlashCommandRuntime } from "./types";
 
@@ -35,7 +39,7 @@ export function isAcpBuiltinShadowedName(name: string): boolean {
  * see commands it cannot drive.
  */
 export const ACP_BUILTIN_SLASH_COMMANDS: AvailableCommand[] = BUILTIN_SLASH_COMMANDS_INTERNAL.filter(
-	command => command.handle !== undefined,
+	command => command.handle !== undefined && command.isAvailable === undefined,
 ).map(command => {
 	// Honor mode-specific copy: ACP clients receive concise text-mode
 	// descriptions/hints when the spec sets `acpDescription` / `acpInputHint`,
@@ -64,6 +68,7 @@ export async function executeAcpBuiltinSlashCommand(
 	if (!parsed) return false;
 	const command = lookupBuiltinSlashCommand(parsed.name);
 	if (!command?.handle) return false;
+	if (!isSlashCommandAvailable(command, runtime.settings)) return false;
 	const result = await command.handle(parsed, runtime);
 	if (result === undefined) return { consumed: true };
 	return result;
