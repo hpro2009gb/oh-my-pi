@@ -14,6 +14,11 @@ export const authGatewayHelp = {
 	description: "Run an auth-gateway forward proxy backed by the configured broker",
 } satisfies CommandMetadata;
 
+export const bakeoffHelp = {
+	description:
+		"Compare models on the same prompt with one-shot completions and a side-by-side report (skips models without configured auth)",
+} satisfies CommandMetadata;
+
 export const benchHelp = {
 	description:
 		"Benchmark models: TTFT/prefill vs decode throughput with p50/p95, across chat, prefill, generation, and prompt-cache workloads",

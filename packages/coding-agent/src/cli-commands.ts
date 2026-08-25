@@ -118,6 +118,11 @@ export const commands: CommandEntry[] = [
 		help: commandHelp.imagesHelp,
 	},
 	{
+		name: "bakeoff",
+		load: () => import("./commands/bakeoff").then(m => m.default),
+		help: commandHelp.bakeoffHelp,
+	},
+	{
 		name: "if-bench",
 		load: () => import("./commands/if-bench").then(m => m.default),
 		help: commandHelp.ifBenchHelp,
