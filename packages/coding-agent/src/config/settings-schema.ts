@@ -5909,6 +5909,18 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"walkthrough.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "tools",
+			group: "Developer",
+			label: "Walkthrough Artifacts",
+			description:
+				"Generate markdown walkthrough artifacts with evidence citations from this session's tool history via /walkthrough. Off by default",
+		},
+	},
+
 	"dev.autoqa": {
 		type: "boolean",
 		default: true,
