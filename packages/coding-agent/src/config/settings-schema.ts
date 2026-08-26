@@ -215,6 +215,7 @@ export const TAB_GROUPS: Record<SettingTab, readonly string[]> = {
 	files: ["Editing", "Reading", "Read Summaries", "LSP"],
 	shell: ["Bash", "Eval & Runtimes"],
 	tools: [
+		"Weapons",
 		"Available Tools",
 		"Todos",
 		"Grep & Browser",

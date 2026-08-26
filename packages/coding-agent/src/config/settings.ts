@@ -516,6 +516,20 @@ export class Settings {
 	}
 
 	/**
+	 * Whether `path` is set in persisted config (global, project, or overlay),
+	 * ignoring runtime overrides. Used so a weapon pack can replace a previous
+	 * pack without clobbering the user's config.yml.
+	 */
+	isPersisted(path: SettingPath): boolean {
+		const segments = SETTING_PATH_SEGMENTS[path];
+		return (
+			getByPath(this.#global, segments) !== undefined ||
+			getByPath(this.#projectSettingsForMerge(), segments) !== undefined ||
+			getByPath(this.#configOverlay, segments) !== undefined
+		);
+	}
+
+	/**
 	 * Set a setting value (sync).
 	 * Updates global settings and queues a background save.
 	 * Triggers hooks for settings that have side effects.

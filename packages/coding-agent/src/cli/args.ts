@@ -28,6 +28,8 @@ export interface Args {
 	addDir?: string[];
 	profile?: string;
 	alias?: string;
+	/** Weapon pack applied at launch (`--preset` / `--weapon`). */
+	preset?: string;
 	allowHome?: boolean;
 	provider?: string;
 	model?: string;

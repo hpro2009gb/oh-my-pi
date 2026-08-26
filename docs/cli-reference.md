@@ -118,6 +118,7 @@ See [providers](./providers.md) and [models](./models.md) for model resolution.
 
 | Flag | Description |
 | --- | --- |
+| `--preset <name>`, `--weapon <name>` | Apply a weapon pack for this session (`pi-minimal`, `opm-verify`, or `pi-super`). Super Pi defaults to `pi-super`; `omp` starts with none. Tool changes take effect at session start. Also `/weapon` and Settings → Tools → Weapons. |
 | `--tools <a,b,c>` | Comma-separated list of tools to enable (default: all). |
 | `--no-tools` | Disable all built-in tools. |
 | `--no-lsp` | Disable LSP tools, formatting, and diagnostics. |
