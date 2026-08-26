@@ -44,7 +44,7 @@ describe("WeaponSelectorComponent", () => {
 		const output = renderPlain(component);
 		expect(output).toContain("Smallest tool slate for a fast harness");
 		expect(output).not.toContain("Advisor, prewalk, and checkpoint on");
-		expect(output).not.toContain("GitHub on for PRs and issues");
+		expect(output).not.toContain("GitHub tool stays off until you turn it on");
 	});
 
 	it("arms the highlighted pack on Enter and closes on Esc", () => {

@@ -5,6 +5,7 @@ import * as path from "node:path";
 import { DEFAULT_PRODUCT_NAME, SUPERPI_PRODUCT_NAME } from "@oh-my-pi/pi-utils/product-identity";
 import { Snowflake } from "@oh-my-pi/pi-utils/snowflake";
 import {
+	formatInstallReport,
 	installSuperpiSourceLauncher,
 	renderSuperpiSourceLauncher,
 	SUPERPI_BIN,
@@ -104,5 +105,19 @@ describe("superpi sidecar install", () => {
 		} finally {
 			await fs.rm(tmp, { recursive: true, force: true });
 		}
+	});
+
+	it("prints the clone directory and does not treat GitHub as the install location", () => {
+		const report = formatInstallReport({
+			dest: "/home/me/.local/bin/superpi",
+			repoRoot: "/home/me/src/oh-my-pi",
+			installDir: "/home/me/.local/bin",
+			pathEnv: "/usr/bin",
+		});
+		expect(report).toContain("Clone directory: /home/me/src/oh-my-pi");
+		expect(report).toContain("Installed superpi to /home/me/.local/bin/superpi");
+		expect(report).toContain("This installer does not upload to GitHub.");
+		expect(report).toContain("Add /home/me/.local/bin to PATH");
+		expect(report.includes("github.com")).toBe(false);
 	});
 });

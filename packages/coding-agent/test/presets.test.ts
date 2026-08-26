@@ -52,7 +52,7 @@ describe("presets", () => {
 		expect(result?.applied).toContain("browser.enabled");
 	});
 
-	it("pi-super turns on advisor, prewalk, checkpoint, and github that vanilla omp leaves off", () => {
+	it("pi-super turns on advisor, prewalk, and checkpoint, and leaves GitHub off", () => {
 		const settings = Settings.isolated();
 		applyPreset(settings, "pi-super");
 
@@ -60,7 +60,7 @@ describe("presets", () => {
 		expect(settings.get("advisor.enabled")).toBe(true);
 		expect(settings.get("prewalk.enabled")).toBe(true);
 		expect(settings.get("checkpoint.enabled")).toBe(true);
-		expect(settings.get("github.enabled")).toBe(true);
+		expect(settings.get("github.enabled")).toBe(false);
 	});
 
 	it("opm-verify enables the engineer toolkit without Super Pi extras", () => {
@@ -79,7 +79,7 @@ describe("presets", () => {
 		const settings = Settings.isolated();
 		applyPreset(settings, "pi-super");
 		expect(settings.get("advisor.enabled")).toBe(true);
-		expect(settings.get("github.enabled")).toBe(true);
+		expect(settings.get("github.enabled")).toBe(false);
 
 		const result = applyPreset(settings, "pi-minimal");
 		expect(result?.preset.name).toBe("pi-minimal");
@@ -125,6 +125,7 @@ describe("presets", () => {
 			}
 		}
 		expect(table).toContain("Advisor, prewalk, and checkpoint on");
+		expect(table).toContain("GitHub tool stays off until you turn it on");
 		expect(table).toContain("Advisor, prewalk, checkpoint, and GitHub stay off");
 		expect(table).toContain("Smallest tool slate for a fast harness");
 	});

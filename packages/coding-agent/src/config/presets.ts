@@ -119,7 +119,7 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		highlights: [
 			"Full OMP engineer toolkit on",
 			"Advisor, prewalk, and checkpoint on",
-			"GitHub on for PRs and issues",
+			"GitHub tool stays off until you turn it on",
 		],
 		learnedFrom: "Cline, Claude Code, Codex, Aider",
 		settings: [
@@ -133,7 +133,7 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 			ov("advisor.enabled", true),
 			ov("prewalk.enabled", true),
 			ov("checkpoint.enabled", true),
-			ov("github.enabled", true),
+			ov("github.enabled", false),
 		],
 	},
 };

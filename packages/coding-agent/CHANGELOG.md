@@ -5,7 +5,7 @@
 ### Added
 
 - Added `bun scripts/install-superpi.ts` to install this checkout as a separate `superpi` command that stores data in `~/.superpi` and does not replace `omp`.
-- Added weapon packs (`pi-minimal`, `opm-verify`, `pi-super`) with a `/weapon` table that explains each pack's features and lets you pick one. `--preset`/`--weapon` and Settings → Tools → Weapons also apply a pack. Super Pi starts on `pi-super`; `omp` is unchanged.
+- Added weapon packs (`pi-minimal`, `opm-verify`, `pi-super`) with a `/weapon` table that explains each pack's features and lets you pick one. `--preset`/`--weapon` and Settings → Tools → Weapons also apply a pack. Super Pi starts on `pi-super` with GitHub off; `omp` is unchanged.
 - Added an explicit append-only transcript declaration and width-independent stable-row API for components that can guarantee an immutable history prefix across later updates.
 - Added `:img` read selector to rasterize local SVG/SVGZ files for vision input.
 - Added side-by-side image and SVG previews to `omp git`, including local Git LFS object resolution and explicit placeholders for unavailable or unsupported binary content.

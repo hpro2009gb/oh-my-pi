@@ -64,19 +64,42 @@ export async function installSuperpiSourceLauncher(options: {
 function printHelp(): void {
 	process.stdout.write(`Install this checkout as a separate Super Pi release.
 
-Usage:
+Usage (from the clone folder that contains scripts/install-superpi.ts):
   bun scripts/install-superpi.ts           Install a source launcher named ${SUPERPI_BIN}
   bun scripts/install-superpi.ts --binary  Compile a standalone ${SUPERPI_BIN} binary
   bun scripts/install-superpi.ts --help
 
+This is a local install. It does not upload Super Pi to GitHub.
 Does not replace \`omp\` or write to ~/.omp.
 Data: ~/.${SUPERPI_BIN}   Project config: <cwd>/.${SUPERPI_BIN}
 Install dir: $PI_INSTALL_DIR or ~/.local/bin
 
 Weapons: ${SUPERPI_BIN} starts on pi-super. Switch with --preset / --weapon,
 /weapon (opens a table of packs), or Settings → Tools → Weapons
-(pi-minimal, opm-verify, pi-super).
+(pi-minimal, opm-verify, pi-super). GitHub stays off until you enable it.
 `);
+}
+
+/** Operator summary after a successful install. Includes the clone path so a fake folder is obvious. */
+export function formatInstallReport(options: {
+	dest: string;
+	repoRoot: string;
+	installDir: string;
+	pathEnv: string;
+}): string {
+	const pathParts = options.pathEnv.split(path.delimiter);
+	const runLine = pathParts.includes(options.installDir)
+		? `Run '${SUPERPI_BIN}' to get started.`
+		: `Add ${options.installDir} to PATH, then run '${SUPERPI_BIN}'.`;
+	return [
+		"",
+		`Installed ${SUPERPI_BIN} to ${options.dest}`,
+		`Clone directory: ${options.repoRoot}`,
+		`Official omp is unchanged. Super Pi data: ~/.${SUPERPI_BIN}`,
+		"This installer does not upload to GitHub.",
+		runLine,
+		"",
+	].join("\n");
 }
 
 async function installCompiledBinary(installDir: string, repoRoot: string): Promise<string> {
@@ -128,14 +151,14 @@ async function main(argv: readonly string[] = process.argv.slice(2)): Promise<vo
 				cliPath,
 			});
 
-	process.stdout.write(`\nInstalled ${SUPERPI_BIN} to ${dest}\n`);
-	process.stdout.write(`Official omp is unchanged. Super Pi data: ~/.${SUPERPI_BIN}\n`);
-	const pathParts = (process.env.PATH ?? "").split(path.delimiter);
-	if (pathParts.includes(installDir)) {
-		process.stdout.write(`Run '${SUPERPI_BIN}' to get started.\n`);
-	} else {
-		process.stdout.write(`Add ${installDir} to PATH, then run '${SUPERPI_BIN}'.\n`);
-	}
+	process.stdout.write(
+		formatInstallReport({
+			dest,
+			repoRoot,
+			installDir,
+			pathEnv: process.env.PATH ?? "",
+		}),
+	);
 }
 
 if (import.meta.main) {
