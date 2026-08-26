@@ -15,12 +15,24 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { engines, version } from "../package.json" with { type: "json" };
+import { PRODUCT_IDENTITY } from "./product-identity";
 
-/** App name (e.g. "omp") */
-export const APP_NAME: string = "omp";
+export {
+	DEFAULT_PRODUCT_CONFIG_DIR,
+	DEFAULT_PRODUCT_NAME,
+	normalizeProductName,
+	PRODUCT_IDENTITY,
+	type ProductIdentity,
+	type ProductIdentityInput,
+	resolveProductIdentity,
+	SUPERPI_PRODUCT_NAME,
+} from "./product-identity";
 
-/** Config directory name (e.g. ".omp") */
-export const CONFIG_DIR_NAME: string = ".omp";
+/** App name (e.g. "omp", or "superpi" for a sidecar install). */
+export const APP_NAME: string = PRODUCT_IDENTITY.appName;
+
+/** Config directory name (e.g. ".omp", or ".superpi" for a sidecar install). */
+export const CONFIG_DIR_NAME: string = PRODUCT_IDENTITY.configDir;
 
 /** Ordered main settings filenames: canonical write target first, legacy-compatible YAML fallback second. */
 export const MAIN_CONFIG_FILENAMES = ["config.yml", "config.yaml"] as const;

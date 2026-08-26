@@ -18,6 +18,8 @@ export interface CodingAgentCompileOptions {
 	readonly target?: Bun.Build.CompileTarget;
 	/** Optional unmodified Bun executable used as the standalone runtime template. */
 	readonly executablePath?: string;
+	/** Optional sidecar product baked into a compiled binary (`superpi`). */
+	readonly product?: string;
 	/** Match release builds that minify identifiers while retaining names. */
 	readonly minifyIdentifiers?: boolean;
 	/** Disable Bun's built-in Darwin signing before the caller re-signs. */
@@ -42,6 +44,7 @@ export async function compileCodingAgent(options: CodingAgentCompileOptions): Pr
 				"process.env.PI_COMPILED": JSON.stringify("true"),
 				"process.env.PI_TINY_TRANSFORMERS_VERSION": JSON.stringify(options.transformersVersion),
 				"process.env.PI_DOCS_EMBED": JSON.stringify((await buildDocsIndexPayload()).payload),
+				...(options.product ? { "process.env.OMP_PRODUCT": JSON.stringify(options.product) } : {}),
 			},
 			minify: {
 				identifiers: options.minifyIdentifiers ?? false,

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `OMP_PRODUCT` so a sidecar install such as `superpi` can use `~/.superpi` without sharing `~/.omp`.
+
 ## [18.0.4] - 2026-08-24
 
 ### Added

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { getDaemonRuntimeDir, isEisdir, isEnoent } from "@oh-my-pi/pi-utils";
+import { APP_NAME, getDaemonRuntimeDir, isEisdir, isEnoent } from "@oh-my-pi/pi-utils";
 
 /** Resolve the private runtime directory shared by omp processes in one project directory. */
 export { getDaemonRuntimeDir as daemonRuntimeDir };
@@ -49,7 +49,7 @@ export async function readDaemonScopeMeta(runtimeDir: string): Promise<string | 
 export function daemonBrokerEndpoint(projectDir: string, runtimeDir: string): string {
 	if (process.platform === "win32") {
 		const key = Bun.hash.wyhash(path.resolve(projectDir)).toString(16).padStart(16, "0");
-		return `\\\\.\\pipe\\omp-daemon-${key}`;
+		return `\\\\.\\pipe\\${APP_NAME}-daemon-${key}`;
 	}
 	return path.join(runtimeDir, "broker.sock");
 }
