@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { parseArgs } from "../src/cli/args";
-import { applyPreset, PRESET_NAMES, PRESETS, resolvePreset } from "../src/config/presets";
+import { applyPreset, PRESET_NAMES, PRESETS, resolveLaunchPreset, resolvePreset } from "../src/config/presets";
 import { Settings } from "../src/config/settings";
 import { SETTINGS_SCHEMA } from "../src/config/settings-schema";
 
@@ -131,5 +131,23 @@ describe("--preset flag parsing", () => {
 		const parsed = parseArgs(["--preset", "pi-minimal", "fix the bug"]);
 		expect(parsed.preset).toBe("pi-minimal");
 		expect(parsed.messages).toEqual(["fix the bug"]);
+	});
+});
+
+describe("resolveLaunchPreset", () => {
+	it("lets an explicit --preset flag win over OMP_DEFAULT_PRESET", () => {
+		expect(resolveLaunchPreset("opm-safe", "pi-super")).toBe("opm-safe");
+	});
+
+	it("falls back to OMP_DEFAULT_PRESET when --preset is omitted", () => {
+		expect(resolveLaunchPreset(undefined, "pi-super")).toBe("pi-super");
+		expect(resolveLaunchPreset("", "pi-super")).toBe("pi-super");
+		expect(resolveLaunchPreset("  ", "pi-super")).toBe("pi-super");
+	});
+
+	it("treats a blank env value as unset so official omp does not inherit a pack", () => {
+		expect(resolveLaunchPreset(undefined, undefined)).toBeUndefined();
+		expect(resolveLaunchPreset(undefined, "")).toBeUndefined();
+		expect(resolveLaunchPreset(undefined, "   ")).toBeUndefined();
 	});
 });

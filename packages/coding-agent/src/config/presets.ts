@@ -134,6 +134,22 @@ export function resolvePreset(name: string): PresetDefinition | undefined {
 }
 
 /**
+ * Launch-time preset selection: an explicit `--preset` flag wins over
+ * `OMP_DEFAULT_PRESET` (used by the `supper-omp` side-by-side launcher).
+ * Empty/whitespace values are treated as unset so a blank env cannot
+ * clobber a real flag or silently apply nothing.
+ */
+export function resolveLaunchPreset(
+	flagPreset: string | undefined,
+	defaultPreset: string | undefined,
+): string | undefined {
+	const flag = flagPreset?.trim();
+	if (flag) return flag;
+	const fallback = defaultPreset?.trim();
+	return fallback || undefined;
+}
+
+/**
  * Apply a single correlated `{ path, value }` override. The pair's value type is
  * bound to its path at the preset definition, so this is sound; the assertion is
  * only needed because TypeScript cannot carry that correlation across iteration

@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added a side-by-side `supper-omp` command (`bun run install:supper-omp`) that runs this checkout with `--preset pi-super` and stores auth/sessions under `~/.supper-omp`, leaving the official `omp` binary and `~/.omp` untouched
 - Added the `pi-super` capability pack (`--preset pi-super`): verify toolkit plus advisor, prewalk, checkpoint, and GitHub tools, without sandbox confinement
 - Added the `opm-safe` capability pack (`--preset opm-safe`): verify toolkit plus Linux workspace sandbox with network off
 - Added a `--preset` flag with named capability packs (`pi-minimal`, `opm-verify`) that flip a curated bundle of tool settings at startup without persisting, leaving any setting you already configured untouched.
