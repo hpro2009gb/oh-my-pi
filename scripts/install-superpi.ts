@@ -74,7 +74,8 @@ Data: ~/.${SUPERPI_BIN}   Project config: <cwd>/.${SUPERPI_BIN}
 Install dir: $PI_INSTALL_DIR or ~/.local/bin
 
 Weapons: ${SUPERPI_BIN} starts on pi-super. Switch with --preset / --weapon,
-/weapon, or Settings → Tools → Weapons (pi-minimal, opm-verify, pi-super).
+/weapon (opens a table of packs), or Settings → Tools → Weapons
+(pi-minimal, opm-verify, pi-super).
 `);
 }
 

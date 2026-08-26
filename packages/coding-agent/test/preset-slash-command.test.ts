@@ -1,17 +1,21 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, vi } from "bun:test";
+import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
+import { executeBuiltinSlashCommand } from "@oh-my-pi/pi-coding-agent/slash-commands/builtin-registry";
 import { Settings } from "../src/config/settings";
 import { lookupBuiltinSlashCommand } from "../src/slash-commands/builtin-registry";
 import { formatPresetList, runPresetSlashCommand } from "../src/slash-commands/helpers/preset";
 import type { ParsedSlashCommand, SlashCommandRuntime } from "../src/slash-commands/types";
 
 describe("runPresetSlashCommand", () => {
-	it("lists every weapon with its source when no name is given", () => {
+	it("lists every weapon with its features when no name is given", () => {
 		const list = formatPresetList();
 		expect(list).toContain("pi-minimal");
 		expect(list).toContain("opm-verify");
 		expect(list).toContain("pi-super");
-		expect(list).toContain("learned from");
+		expect(list).toContain("Learned from");
 		expect(list).toContain("Available weapons:");
+		expect(list).toContain("Smallest tool slate for a fast harness");
+		expect(list).toContain("Advisor, prewalk, and checkpoint on");
 		expect(runPresetSlashCommand(Settings.isolated(), "")).toBe(list);
 	});
 
@@ -44,6 +48,7 @@ describe("/weapon builtin registration", () => {
 		expect(spec?.name).toBe("weapon");
 		expect(spec?.allowArgs).toBe(true);
 		expect(spec?.handle).toBeDefined();
+		expect(spec?.handleTui).toBeDefined();
 		expect(lookupBuiltinSlashCommand("preset")).toBe(spec);
 		expect(lookupBuiltinSlashCommand("weapons")).toBe(spec);
 	});
@@ -64,5 +69,39 @@ describe("/weapon builtin registration", () => {
 
 		expect(outputs[0]).toContain('Applied weapon "pi-minimal"');
 		expect(settings.get("browser.enabled")).toBe(false);
+	});
+
+	it("opens the weapon table in the TUI when invoked without a name", async () => {
+		const showWeaponSelector = vi.fn();
+		const setText = vi.fn();
+		const handled = await executeBuiltinSlashCommand("/weapon", {
+			ctx: {
+				editor: { setText } as unknown as InteractiveModeContext["editor"],
+				showWeaponSelector,
+			} as unknown as InteractiveModeContext,
+		});
+		expect(handled).toBe(true);
+		expect(showWeaponSelector).toHaveBeenCalledTimes(1);
+		expect(setText).toHaveBeenCalledWith("");
+	});
+
+	it("applies a named pack from the TUI without opening the table", async () => {
+		const showWeaponSelector = vi.fn();
+		const showStatus = vi.fn();
+		const setText = vi.fn();
+		const settings = Settings.isolated();
+		const handled = await executeBuiltinSlashCommand("/weapon pi-minimal", {
+			ctx: {
+				editor: { setText } as unknown as InteractiveModeContext["editor"],
+				showWeaponSelector,
+				showStatus,
+				settings,
+			} as unknown as InteractiveModeContext,
+		});
+		expect(handled).toBe(true);
+		expect(showWeaponSelector).not.toHaveBeenCalled();
+		expect(showStatus).toHaveBeenCalledWith(expect.stringContaining('Applied weapon "pi-minimal"'));
+		expect(settings.get("lsp.enabled")).toBe(false);
+		expect(setText).toHaveBeenCalledWith("");
 	});
 });

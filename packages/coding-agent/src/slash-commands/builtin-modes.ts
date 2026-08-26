@@ -203,13 +203,21 @@ export const BUILTIN_MODE_SLASH_COMMANDS: ReadonlyArray<SlashCommandSpec> = [
 		name: "weapon",
 		aliases: ["preset", "weapons"],
 		icon: "tools",
-		description: "List weapons or apply one (pi-minimal, opm-verify, pi-super)",
+		description: "Open the weapon table or apply a pack (pi-minimal, opm-verify, pi-super)",
 		allowArgs: true,
 		acpInputHint: "[name]",
 		subcommands: PRESET_NAMES.map(name => ({ name, description: PRESETS[name].description })),
 		handle: async (command, runtime) => {
 			await runtime.output(runPresetSlashCommand(runtime.settings, command.args));
 			return commandConsumed();
+		},
+		handleTui: (command, runtime) => {
+			if (command.args.trim()) {
+				runtime.ctx.showStatus(runPresetSlashCommand(runtime.ctx.settings, command.args));
+			} else {
+				runtime.ctx.showWeaponSelector();
+			}
+			runtime.ctx.editor.setText("");
 		},
 	},
 	{

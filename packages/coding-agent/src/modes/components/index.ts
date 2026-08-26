@@ -39,4 +39,5 @@ export * from "./ttsr-notification";
 export * from "./user-message";
 export * from "./user-message-selector";
 export * from "./visual-truncate";
+export * from "./weapon-selector";
 export * from "./welcome";

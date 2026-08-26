@@ -414,6 +414,8 @@ export interface InteractiveModeContext {
 
 	// Selector handling
 	showSettingsSelector(): void;
+	/** Open the fullscreen weapon-pack table (`/weapon`). */
+	showWeaponSelector(): void;
 	showAdvisorConfigure(): void;
 	showHistorySearch(): void;
 	showExtensionsDashboard(): void;

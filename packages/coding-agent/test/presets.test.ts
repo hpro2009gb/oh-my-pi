@@ -4,6 +4,8 @@ import { parseArgs } from "../src/cli/args";
 import {
 	applyPreset,
 	defaultPresetForProduct,
+	formatWeaponTable,
+	matchingPresetName,
 	PRESET_BOOLEAN_PATHS,
 	PRESET_NAMES,
 	PRESETS,
@@ -91,6 +93,40 @@ describe("presets", () => {
 	it("returns undefined for an unknown preset name", () => {
 		expect(resolvePreset("does-not-exist")).toBeUndefined();
 		expect(applyPreset(Settings.isolated(), "does-not-exist")).toBeUndefined();
+	});
+
+	it("identifies the matching pack and prefers the more specific Super Pi loadout", () => {
+		const settings = Settings.isolated();
+		expect(matchingPresetName(settings)).toBeUndefined();
+
+		applyPreset(settings, "opm-verify");
+		expect(matchingPresetName(settings)).toBe("opm-verify");
+
+		applyPreset(settings, "pi-super");
+		expect(matchingPresetName(settings)).toBe("pi-super");
+
+		applyPreset(settings, "pi-minimal");
+		expect(matchingPresetName(settings)).toBe("pi-minimal");
+
+		settings.override("lsp.enabled", true);
+		expect(matchingPresetName(settings)).toBeUndefined();
+	});
+
+	it("prints every pack's feature bullets in the weapon table", () => {
+		const table = formatWeaponTable();
+		expect(table).toContain("Available weapons:");
+		for (const name of PRESET_NAMES) {
+			const preset = PRESETS[name];
+			expect(table).toContain(preset.name);
+			expect(table).toContain(preset.label);
+			expect(table).toContain(`Learned from ${preset.learnedFrom}.`);
+			for (const line of preset.highlights) {
+				expect(table).toContain(line);
+			}
+		}
+		expect(table).toContain("Advisor, prewalk, and checkpoint on");
+		expect(table).toContain("Advisor, prewalk, checkpoint, and GitHub stay off");
+		expect(table).toContain("Smallest tool slate for a fast harness");
 	});
 });
 

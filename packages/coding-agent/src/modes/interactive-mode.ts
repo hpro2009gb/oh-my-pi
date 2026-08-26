@@ -5365,6 +5365,10 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.#selectorController.showSettingsSelector();
 	}
 
+	showWeaponSelector(): void {
+		this.#selectorController.showWeaponSelector();
+	}
+
 	showAdvisorConfigure(): void {
 		this.#selectorController.showAdvisorConfigure();
 	}

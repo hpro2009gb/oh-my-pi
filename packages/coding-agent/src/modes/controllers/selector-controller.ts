@@ -21,6 +21,7 @@ import {
 	resolveModelRoleValue,
 } from "../../config/model-resolver";
 import { getRoleInfo } from "../../config/model-roles";
+import { applyPreset, formatApplyPresetResult, matchingPresetName } from "../../config/presets";
 import { settings } from "../../config/settings";
 import { disableProvider, enableProvider } from "../../discovery";
 import { clearPluginRootsAndCaches, resolveActiveProjectRegistryPath } from "../../discovery/helpers";
@@ -106,6 +107,7 @@ import { ToolExecutionComponent } from "../components/tool-execution";
 import { TranscriptBlock } from "../components/transcript-container";
 import { TreeSelectorComponent } from "../components/tree-selector";
 import { UserMessageSelectorComponent } from "../components/user-message-selector";
+import { WeaponSelectorComponent } from "../components/weapon-selector";
 import type { SessionObserverRegistry } from "../session-observer-registry";
 import { buildCopyTargets } from "../utils/copy-targets";
 
@@ -268,6 +270,24 @@ export class SelectorController {
 			);
 			overlayHandle = this.#showFullscreenMenu(selector);
 		});
+	}
+
+	showWeaponSelector(): void {
+		let overlayHandle: OverlayHandle | undefined;
+		const done = () => {
+			overlayHandle?.hide();
+			this.focusActiveEditorArea();
+			this.ctx.ui.requestRender();
+		};
+		const selector = new WeaponSelectorComponent(matchingPresetName(this.ctx.settings), {
+			onSelect: name => {
+				const result = applyPreset(this.ctx.settings, name);
+				done();
+				if (result) this.ctx.showStatus(formatApplyPresetResult(result));
+			},
+			onClose: done,
+		});
+		overlayHandle = this.#showFullscreenMenu(selector);
 	}
 
 	showAdvisorConfigure(): void {
