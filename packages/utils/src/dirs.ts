@@ -269,7 +269,10 @@ class DirResolver {
 				const value = process.env[envVar];
 				if (!value) return undefined;
 				try {
-					const appRoot = path.join(value, APP_NAME);
+					// Side-by-side apps (e.g. supper-omp) set OMP_XDG_APP_NAME so they
+					// never adopt `$XDG_*_HOME/omp` from the official install.
+					const xdgApp = process.env.OMP_XDG_APP_NAME?.trim() || APP_NAME;
+					const appRoot = path.join(value, xdgApp);
 					if (profile) {
 						const profilePath = path.join(appRoot, "profiles", profile);
 						if (fs.existsSync(profilePath)) {

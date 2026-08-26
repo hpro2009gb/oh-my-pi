@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `OMP_XDG_APP_NAME` so a side-by-side app can use `$XDG_*_HOME/<name>` instead of adopting the official `$XDG_*_HOME/omp` tree
+
 ## [18.0.4] - 2026-08-24
 
 ### Added

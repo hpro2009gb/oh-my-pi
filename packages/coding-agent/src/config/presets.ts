@@ -22,7 +22,7 @@ import type { Settings } from "./settings";
 import type { SettingPath, SettingValue } from "./settings-schema";
 
 /** Stable preset identifiers accepted by `--preset` and the selector UI. */
-export const PRESET_NAMES = ["pi-minimal", "opm-verify", "opm-safe"] as const;
+export const PRESET_NAMES = ["pi-minimal", "opm-verify", "opm-safe", "pi-super"] as const;
 
 export type PresetName = (typeof PRESET_NAMES)[number];
 
@@ -100,6 +100,27 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 			{ path: "sandbox.allowNetwork", value: false },
 		],
 	},
+	"pi-super": {
+		name: "pi-super",
+		label: "Pi Super",
+		description:
+			"Full engineer toolkit plus advisor, prewalk, checkpoint, and GitHub — a super-agent slate without sandbox confinement.",
+		learnedFrom: "OMP Super",
+		settings: [
+			{ path: "lsp.enabled", value: true },
+			{ path: "todo.enabled", value: true },
+			{ path: "ask.enabled", value: true },
+			{ path: "web_search.enabled", value: true },
+			{ path: "astGrep.enabled", value: true },
+			{ path: "astEdit.enabled", value: true },
+			{ path: "security.enabled", value: true },
+			{ path: "advisor.enabled", value: true },
+			{ path: "prewalk.enabled", value: true },
+			{ path: "checkpoint.enabled", value: true },
+			{ path: "github.enabled", value: true },
+			{ path: "sandbox.mode", value: "off" },
+		],
+	},
 };
 
 /** Type guard: whether `name` is a known preset identifier. */
@@ -110,6 +131,22 @@ export function isPresetName(name: string): name is PresetName {
 /** Resolve a preset by name, or `undefined` when the name is unknown. */
 export function resolvePreset(name: string): PresetDefinition | undefined {
 	return isPresetName(name) ? PRESETS[name] : undefined;
+}
+
+/**
+ * Launch-time preset selection: an explicit `--preset` flag wins over
+ * `OMP_DEFAULT_PRESET` (used by the `supper-omp` side-by-side launcher).
+ * Empty/whitespace values are treated as unset so a blank env cannot
+ * clobber a real flag or silently apply nothing.
+ */
+export function resolveLaunchPreset(
+	flagPreset: string | undefined,
+	defaultPreset: string | undefined,
+): string | undefined {
+	const flag = flagPreset?.trim();
+	if (flag) return flag;
+	const fallback = defaultPreset?.trim();
+	return fallback || undefined;
 }
 
 /**

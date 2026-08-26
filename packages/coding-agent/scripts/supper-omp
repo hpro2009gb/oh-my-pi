@@ -1,0 +1,48 @@
+#!/bin/sh
+# Side-by-side Super Pi launcher. Installs as `supper-omp`, never as `omp`.
+#
+# Isolates auth/sessions/settings/daemons under ~/.supper-omp (PI_CONFIG_DIR)
+# and uses a distinct XDG app name so Linux XDG omp roots are not adopted.
+# Applies --preset pi-super via OMP_DEFAULT_PRESET unless the user already
+# configured a preset (flag wins in resolveLaunchPreset).
+#
+# Same bunfig-preload workaround as scripts/omp: launch Bun from an empty
+# directory, then restore cwd in the preload shim.
+set -e
+
+self=$0
+while [ -L "$self" ]; do
+	link=$(readlink "$self")
+	case $link in
+	/*) self=$link ;;
+	*) self=$(dirname "$self")/$link ;;
+	esac
+done
+scripts_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd -P)
+cli=$scripts_dir/../src/cli.ts
+preload=$scripts_dir/omp.ts
+timing_preload=$scripts_dir/../../utils/src/module-timer.ts
+
+: "${PI_CONFIG_DIR:=.supper-omp}"
+: "${OMP_XDG_APP_NAME:=supper-omp}"
+: "${OMP_DEFAULT_PRESET:=pi-super}"
+: "${OMP_DEV_LAUNCH_DIR:=${HOME}/.supper-omp/.dev-cwd}"
+export PI_CONFIG_DIR OMP_XDG_APP_NAME OMP_DEFAULT_PRESET OMP_DEV_LAUNCH_DIR
+
+launch_dir=$OMP_DEV_LAUNCH_DIR
+mkdir -p "$launch_dir"
+
+OMP_LAUNCH_CWD=$PWD
+export OMP_LAUNCH_CWD
+cd "$launch_dir"
+run_bun() {
+	if [ "${HERDR_ENV:-}" = 1 ] && [ "$(uname -s)" = Darwin ]; then
+		exec -a supper-omp bun "$@"
+	fi
+	exec bun "$@"
+}
+
+if [ -n "${PI_TIMING:-}" ]; then
+	run_bun --preload "$preload" --preload "$timing_preload" "$cli" "$@"
+fi
+run_bun --preload "$preload" "$cli" "$@"

@@ -43,7 +43,7 @@ import {
 	type ScopedModel,
 } from "./config/model-resolver";
 import { ModelsConfigFile } from "./config/models-config";
-import { applyPreset, PRESET_NAMES } from "./config/presets";
+import { applyPreset, PRESET_NAMES, resolveLaunchPreset } from "./config/presets";
 import { serviceTierSettingToTier } from "./config/service-tier";
 import { getDefault, type SettingPath, Settings, type SettingValue, settings } from "./config/settings";
 import { initializeWithSettings } from "./discovery";
@@ -1450,11 +1450,12 @@ export async function runRootCommand(
 			// setup-time checks (e.g. #wrapToolForAcpPermission) also see the yolo intent.
 			settingsInstance.override("tools.approvalMode", "yolo");
 		}
-		if (parsedArgs.preset) {
+		const presetName = resolveLaunchPreset(parsedArgs.preset, process.env.OMP_DEFAULT_PRESET);
+		if (presetName) {
 			// Runtime overrides only; keys the user already configured win.
-			if (!applyPreset(settingsInstance, parsedArgs.preset)) {
+			if (!applyPreset(settingsInstance, presetName)) {
 				logger.warn("Ignoring unknown --preset value", {
-					preset: parsedArgs.preset,
+					preset: presetName,
 					valid: PRESET_NAMES,
 				});
 			}
